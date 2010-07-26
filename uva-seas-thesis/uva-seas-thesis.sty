@@ -1,0 +1,426 @@
+%% uva-seas-thesis
+%%   LaTeX style for writing a Ph.D. (or Masters) thesis for the School of 
+%%   Engineering and Applied Sciences (SEAS) at the University of Virginia.
+%% Author: Joel Coffman <joel.coffman@email.virginia.edu>
+
+\def\@package{uva-seas-thesis}
+\def\@version{0.1.0}
+\def\@lastmodified{2009/04/14} % YYYY/MM/DD (required)
+
+%% =============================================================================
+%% Change Log
+%% =============================================================================
+%% 0.1.0
+%% - Initial commit to repository
+%% =============================================================================
+
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{\@package}[%
+    \@lastmodified\ UVa SEAS Thesis package by Joel Coffman (v. \@version)
+]
+
+%% =============================================================================
+%% Constants
+%% =============================================================================
+
+%% Constants
+\def\@true{true}
+
+%% =============================================================================
+%% Option parsing
+%% =============================================================================
+
+\DeclareOption{draft}{%
+  \def\@draft{\@true}\relax%
+  %% DRAFT mode: overprint page with "DRAFT"
+  \AtEndOfPackage{%
+    \RequirePackage{type1cm}% for arbitrary font size (required by draftwatermark)
+    \RequirePackage{draftwatermark}%
+  }
+}
+
+\DeclareOption{hidefront}{%
+  \def\@hidefrontmatter{\@true}\relax%
+}
+\DeclareOption{hideback}{%
+  \def\@hidebackmatter{\@true}\relax%
+}
+\DeclareOption{hidefrontback}{%
+  \def\@hidefrontmatter{\@true}\relax%
+  \def\@hidebackmatter{\@true}\relax%
+}
+
+\DeclareOption{hyper}{%
+  \def\@hyper{\@true}\relax
+}
+
+\DeclareOption{nobind}{%
+  \def\@nobind{\@true}%
+}
+
+\DeclareOption{openany}{%
+  \let\cleardoublepage\clearpage%
+}
+
+\DeclareOption{twoside}{%
+  \def\@twoside{\@true}%
+}
+
+%% Process the specified options. (NOTE: No packages allowed above here.)
+\ProcessOptions\relax
+
+%% =============================================================================
+%% Required packages
+%% =============================================================================
+
+\ifx \@hyper \undefined 
+  % hyperref cannot handle fragile commands in moving references (e.g., chapter 
+  % or section names). \texorpdfstring allows a TeX and PDF name to be 
+  % specified; the PDF name is used by hyperref for link? names. Because the 
+  % command is not standard, the definition allows its use even when not using 
+  % the hyperref package.
+  \newcommand{\texorpdfstring}[2]{#1}
+\else
+  \RequirePackage[%
+      colorlinks=true,%
+      linkcolor=red,%
+      citecolor=green,%
+      urlcolor=blue,%
+      hyperfootnotes=false,%
+      hyperindex,%
+      pdfstartview={FitH}%
+  ]{hyperref}%pdfborder={0 0 0}
+  \RequirePackage[all]{hypcap}%
+\fi
+
+%% Set appropriate margins
+%% nobind (OPTION) => 1-inch margins
+\RequirePackage[%
+    inner=\ifx \@nobind \undefined 1.5in \else 1in \fi,%
+    outer=1in,%
+    top=1in,%
+    bottom=1in,%
+    includeheadfoot,%
+    asymmetric%
+]{geometry}
+
+%% for double (or other special) spacing
+\RequirePackage{setspace}
+
+%% =============================================================================
+%% 
+%% =============================================================================
+% orphan (i.e., page break immediately after first line of paragraph) penalty
+\clubpenalty=10000 % infinite -- no orphans
+% widow (i.e., page break immediately before last line of paragraph) penalty
+\widowpenalty=10000 % infinite -- no widows
+
+% double space the complete document
+\AtBeginDocument{\doublespacing}
+
+%% Counter bug for spacing quotes -- too much whitespace is currently inserted 
+%% (a blank (doublespaced) line before and after the quote environment).
+%%
+%% NOTE that the given code assumes doublespacing is active! Testing the current
+%% spacing using a macro would be a better solution than hardcoding the value.
+\let\oldquote\quote\relax
+\let\endoldquote\endquote\relax
+\renewenvironment{quote}{%
+  \vspace{-.5\baselineskip}%
+  \begin{oldquote}
+}{%
+  \end{oldquote}
+  \vspace{-.5\baselineskip}
+}
+
+\renewcommand*\author[1]{
+  \gdef\@author{#1}
+  % set PDF metadata
+  \@ifpackageloaded{hyperref}{
+    \hypersetup{pdfauthor = {\@author}}
+  }{}
+}
+\renewcommand*\title[1]{
+  \gdef\@title{#1}
+  % set PDF metadata
+  \@ifpackageloaded{hyperref}{
+    \hypersetup{pdftitle = {\@title}}
+  }{}
+}
+\newcommand*\degree[1]{\gdef\@degree{#1}}
+\newcommand*\field[1]{\gdef\@field{#1}}
+
+\newlength{\hlineheight}
+\setlength{\hlineheight}{.08mm}
+
+%% Title page
+\let\oldtitlepage\titlepage % save existing macro
+% Ph.D. is the default degree; field of study is required
+\DeclareRobustCommand{\titlepage}{%
+  \thispagestyle{empty} % No header or footer
+  %\setcounter{page}{0} % Don't number the title page!
+  
+  \begingroup
+    \centering
+    
+    \vspace{1in}
+    \textbf{\Large \@title}\\
+    \rule{\textwidth}{\hlineheight}
+    A Thesis\\
+    Presented to\\
+    the Faculty of the School of Engineering and Applied Science\\
+    University of Virginia\\
+    \rule{\textwidth}{\hlineheight}
+    In Partial Fulfillment\\
+    of the requirements for the Degree\\
+    \ifx \@degree \undefined 
+      \PackageWarning{\@package}{%
+        Missing degree, assuming Ph.D. Use \protect\degree \space in the 
+        preamble to specify the degree.
+      }
+      Doctor of Philosophy
+    \else
+      \@degree\ 
+    \fi
+    \ifx \@field \undefined 
+      \PackageError{\@package}{%
+        Missing field of study. Use \protect\field \space in the preamble to 
+        specify the field of study.
+      }{}
+    \else
+        (\@field)
+    \fi\\
+    by\\
+    \@author\\
+    \@date\\
+    
+    \ifx \@draft \undefined \else
+      \vfill
+      
+      \hrule
+      \begin{center}
+        DRAFT: \today
+      \end{center}
+      \hrule
+    \fi
+  \endgroup
+  
+  \clearpage
+  \thispagestyle{empty}
+}
+\renewcommand{\maketitle}{\titlepage}
+
+%% Copyright page
+\DeclareRobustCommand{\copyrightpage}{
+  \ifx \@hidefrontmatter \undefined
+    \thispagestyle{empty} % No header or footer
+    %\setcounter{page}{0} % Don't number the copyright page
+    
+    \ \vfill
+    
+    \begin{centering}
+      \singlespacing
+      
+      \noindent\textcopyright\ Copyright by\\
+      \@author\\
+      All rights reserved\\
+      \@date\\
+    \end{centering}
+    
+    \clearpage
+  \fi
+}
+
+%% Signatures page
+%% 
+%% SUGGESTION ------
+%% center signatures on page (instead of offset to the right)
+\DeclareRobustCommand{\signatures}[1][5]{
+  \providecommand{\committeeSignatures}{
+    % The exact number of signatures might vary
+    % [TeX loop]
+    \count255 = 1 % \count255 is the TeX scratch register => loop counter
+    \loop
+      \signatureline
+      \signatureindent%
+      \ifnum\count255 = 1%
+        Thesis Adviser%
+      \fi%
+      \ifnum\count255 = 2%
+        Committee Chair%
+      \fi%
+      
+      \ifnum\count255 < #1
+       \advance\count255 by 1
+    \repeat
+  }
+  
+  \ifx \@hidefrontmatter \undefined
+    \thispagestyle{plain} % page number in footer
+    
+    \section*{\centering\Large Approval Sheet}
+    
+    \begin{center}
+      This thesis is submitted in partial fulfillment of the\\
+      requirements for the degree of\\
+      \@degree\ (\@field)
+    \end{center}
+    
+    \newlength{\signaturewidth}
+    \setlength{\signaturewidth}{.8\textwidth}
+    
+    \newlength{\signaturesize}
+    \setlength{\signaturesize}{30pt}
+    
+    \newcommand{\signaturespace}{\addvspace{\signaturesize}}
+    \newcommand{\signatureindent}{\par\noindent\hspace{.2\textwidth}}
+    \newcommand{\signatureline}{\signaturespace\signatureindent \rule{\signaturewidth}{\hlineheight}}
+    
+    \begin{singlespace}
+      \signatureline
+      \signatureindent \@author
+      
+      \addvspace{.75\signaturesize}
+      \noindent This thesis has been read and approved by the Examining Committee:
+      
+      \committeeSignatures
+      
+      \addvspace{.75\signaturesize}
+      \noindent Accepted for the School of Engineering and Applied Science:
+      
+      \signatureline
+      \signatureindent Dean, School of Engineering and Applied Science
+      
+      \signatureindent \@date
+    \end{singlespace}
+    
+    \clearpage
+  \fi
+}
+
+\DeclareRobustCommand{\dedication}[1]{%
+  \ifx \@hidefrontmatter \undefined
+    \thispagestyle{plain} % page number in footer
+    
+    \begin{center}
+      \ \vfill
+      \emph{#1}
+      \vfill
+    \end{center}
+    
+    \clearpage
+  \fi
+}
+
+\newenvironment{abstract}[0]{%
+  \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
+  \chapter{Abstract}%
+}{
+  \clearpage%
+  \chaptermark{}%
+}
+
+\newenvironment{acknowledgements}[0]{%
+  \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
+  \chapter{Acknowledgements}%
+}{%
+  \clearpage%
+  \chaptermark{}%
+}
+
+% Since the "standard" bibliography command uses \MakeUppercase, the simplest 
+% way to print in mixed case is by making \MakeUppercase a no-op.
+%
+% Note that this redefinition is repeated for the table of contents, list of 
+% tables, list of figures, and bibliography itself.
+\let\@oldtableofcontents\tableofcontents
+\renewcommand{\tableofcontents}{%
+  \ifx \@hidefrontmatter \undefined
+    \ifx \@hyper \@undefined \else \phantomsection \fi
+    \addcontentsline{toc}{chapter}{Contents}
+    
+    \begin{singlespace}
+      \renewcommand{\MakeUppercase}[1]{##1}
+      
+      \@oldtableofcontents
+    \end{singlespace}
+  \fi
+}
+
+\let\@oldlistoftables\listoftables
+\renewcommand{\listoftables}{%
+  \ifx \@hidefrontmatter \undefined
+    \clearpage
+    \ifx \@hyper \@undefined \else \phantomsection \fi
+    \addcontentsline{toc}{section}{List of Tables}
+    
+    \begin{singlespace}
+      \renewcommand{\MakeUppercase}[1]{##1}
+      
+      \@oldlistoftables
+    \end{singlespace}
+  \fi
+}
+
+\let\@oldlistoffigures\listoffigures
+\renewcommand{\listoffigures}{%
+  \ifx \@hidefrontmatter \undefined
+    \clearpage
+    \ifx \@hyper \@undefined \else \phantomsection \fi
+    \addcontentsline{toc}{section}{List of Figures}
+    
+    \begin{singlespace}
+      \renewcommand{\MakeUppercase}[1]{##1}
+      
+      \@oldlistoffigures
+    \end{singlespace}
+  \fi
+}
+
+\bibliographystyle{unsrt}
+
+\let\@oldbibliography\bibliography\relax
+\renewcommand{\bibliography}[1]{%
+  \ifx \@hidebackmatter \undefined
+    \ifx \@hyper \@undefined \else \phantomsection \fi
+    \addcontentsline{toc}{chapter}{Bibliography}
+    
+    %\begin{raggedright}
+    \begin{singlespace}
+      \setlength{\parskip}{\baselineskip}
+      
+      \renewcommand{\MakeUppercase}[1]{##1}
+      \@oldbibliography{#1}
+    \end{singlespace}
+    %\end{raggedright}
+  \fi
+}
+
+\def\ps@myheadings{%
+  \def\@oddhead{\rightmark\hfill\thepage}%
+  \def\@evenhead{\ifx \@twoside \undefined \else \thepage\hspace{2em} \fi \leftmark \ifx \@twoside \undefined \hfill\thepage \else \hfill \fi}%
+  \def\@oddfoot{\ifx \@draft \undefined \else \hfill DRAFT: \today \hfill \fi}%
+  \def\@evenfoot{\ifx \@draft \undefined \else \hfill DRAFT: \today \hfill \fi}%
+}
+\pagestyle{myheadings}
+
+\renewcommand{\chaptermark}[1]{%
+  \markboth{Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1}{Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1}
+}
+\renewcommand{\sectionmark}[1]{
+  \markright{\thesection\hspace{1em}\vrule\hspace{1em}#1}
+}
+
+\pagenumbering{alph}
+
+\let\@oldfrontmatter\frontmatter\relax
+\DeclareRobustCommand{\frontmatter}{%
+  \@oldfrontmatter%
+  \pagenumbering{roman}%
+}
+
+\let\@oldmainmatter\mainmatter\relax
+\DeclareRobustCommand{\mainmatter}{%
+  \@oldmainmatter%
+  \pagenumbering{arabic}%
+}
