@@ -1,17 +1,20 @@
 %% uva-seas-thesis
 %%   LaTeX style for writing a Ph.D. (or Masters) thesis for the School of 
-%%   Engineering and Applied Sciences (SEAS) at the University of Virginia.
+%%   Engineering and Applied Science (SEAS) at the University of Virginia.
 %% Author: Joel Coffman <joel.coffman@email.virginia.edu>
 
 \def\@package{uva-seas-thesis}
-\def\@version{0.1.0}
+\def\@version{1.0.0}
 \def\@lastmodified{2009/04/14} % YYYY/MM/DD (required)
 
 %% =============================================================================
 %% Change Log
 %% =============================================================================
-%% 0.1.0
+%% 1.0.0
 %% - Initial commit to repository
+%% 1.0.x
+%% - Readability rewrite
+%% - Improved handling of front matter constructs (e.g., signatures page)
 %% =============================================================================
 
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
@@ -23,93 +26,144 @@
 %% Constants
 %% =============================================================================
 
-%% Constants
-\def\@true{true}
+\def\option@true{true}\relax
+\def\option@false{false}\relax
 
 %% =============================================================================
-%% Option parsing
+%% Options
 %% =============================================================================
 
-\DeclareOption{draft}{%
-  \def\@draft{\@true}\relax%
-  %% DRAFT mode: overprint page with "DRAFT"
-  \AtEndOfPackage{%
-    \RequirePackage{type1cm}% for arbitrary font size (required by draftwatermark)
-    \RequirePackage{draftwatermark}%
-  }
+%% bind | nobind
+\DeclareOption{bind}{
+  \let\option@bind=\option@true
+}
+\DeclareOption{nobind}{
+  \let\option@bind=\option@false
 }
 
-\DeclareOption{hidefront}{%
-  \def\@hidefrontmatter{\@true}\relax%
-}
-\DeclareOption{hideback}{%
-  \def\@hidebackmatter{\@true}\relax%
-}
-\DeclareOption{hidefrontback}{%
-  \def\@hidefrontmatter{\@true}\relax%
-  \def\@hidebackmatter{\@true}\relax%
+%% compliantcopyright
+\DeclareOption{compliantcopyright}{
+  \let\option@compliantcopyright=\option@true
 }
 
-\DeclareOption{hyper}{%
-  \def\@hyper{\@true}\relax
+%% booktabs | nobooktabs
+\DeclareOption{booktabs}{
+  \let\option@booktabs=\option@true
+}
+\DeclareOption{nobooktabs}{
+  \let\option@booktabs=\option@false
 }
 
-\DeclareOption{nobind}{%
-  \def\@nobind{\@true}%
+%% draft
+\DeclareOption{draft}{
+  \let\option@draft=\option@true
 }
 
-\DeclareOption{openany}{%
-  \let\cleardoublepage\clearpage%
+%% final
+
+%% hidefront | hideback | hidefrontback
+\DeclareOption{hidefront}{
+  \let\option@hidefront=\option@true
+}
+\DeclareOption{hideback}{
+  \let\option@hideback=\option@true
+}
+\DeclareOption{hidefrontback}{
+  \let\option@hidefront=\option@true
+  \let\option@hidefrontback=\option@true
 }
 
-\DeclareOption{twoside}{%
-  \def\@twoside{\@true}%
+%% hyper
+\DeclareOption{hyper}{
+  \let\option@hyper=\option@true
 }
 
-%% Process the specified options. (NOTE: No packages allowed above here.)
-\ProcessOptions\relax
+%% openany
+\DeclareOption{openany}{
+  \let\option@openany=\option@true
+}
+
+%% twoside
+\DeclareOption{twoside}{
+  \let\option@twoside=\option@true
+}
+
+% execute `default' options
+\ExecuteOptions{booktabs,nobind}
+% process the specified options
+\ProcessOptions\relax % \relax avoids unnecessary lookahead due to * from
+
+% NOTE: No packages may be included before \ProcessOptions
 
 %% =============================================================================
 %% Required packages
 %% =============================================================================
 
-\ifx \@hyper \undefined 
+%% booktabs
+\ifx \option@booktabs\option@true
+  \RequirePackage{booktabs}
+\fi
+
+%% draft
+\ifx \option@draft\option@true
+  \RequirePackage{type1cm} % arbitrary font size (required by draftwatermark)
+  \RequirePackage{draftwatermark} % print watermark across page
+  \RequirePackage[pagewise]{lineno} % line numbers (per page)
+  
+  \SetWatermarkLightness{0.9} % lighten watermark
+  \AtBeginDocument{\linenumbers} % number lines
+  
+  % COMMENT the line below to disable line numbers on drafts
+  \let\option@lineno=\option@true % define additional option value
+\fi
+
+\ifx \option@hyper\option@true
+  \RequirePackage[%
+      colorlinks=true,% color links instead of using boxes
+      linkcolor=red,% color for internal (intra-document) links
+      citecolor=green,% color for bibliographic links
+      urlcolor=blue,% color for URL links
+      hyperfootnotes=false,% disable links to footnotes (because feature is broken)
+      hyperindex,% make page numbers in index into hyperlinks
+      %implicit=false,% don't redefine LaTeX internals (e.g., \label)
+      pdfstartview={FitH}% startup page view: fit width of page to window
+  ]{hyperref}%pdfborder={0 0 0}
+  
+  % fix problem with hyperref that hyperlinks *below* the caption of floats
+  \RequirePackage[all]{hypcap}%
+\else
   % hyperref cannot handle fragile commands in moving references (e.g., chapter 
   % or section names). \texorpdfstring allows a TeX and PDF name to be 
-  % specified; the PDF name is used by hyperref for link? names. Because the 
+  % specified; the PDF name is used by hyperref for link names. Because the 
   % command is not standard, the definition allows its use even when not using 
   % the hyperref package.
   \newcommand{\texorpdfstring}[2]{#1}
-\else
-  \RequirePackage[%
-      colorlinks=true,%
-      linkcolor=red,%
-      citecolor=green,%
-      urlcolor=blue,%
-      hyperfootnotes=false,%
-      hyperindex,%
-      pdfstartview={FitH}%
-  ]{hyperref}%pdfborder={0 0 0}
-  \RequirePackage[all]{hypcap}%
 \fi
 
-%% Set appropriate margins
-%% nobind (OPTION) => 1-inch margins
+% Set appropriate margins. According to Form G122, the left margin must be 1.5 
+% inches and the right, top, and bottom margins all 1 inch. All text *except 
+% page numbers* should not enter the margin.
 \RequirePackage[%
-    inner=\ifx \@nobind \undefined 1.5in \else 1in \fi,%
-    outer=1in,%
+    inner=% toward binding (i.e. left unless twoside is specified)
+        \ifx \option@bind\option@true %
+          1.5in %
+        \else %
+          1in %
+        \fi,%
+    outer=1in,% away from binding
     top=1in,%
     bottom=1in,%
-    includeheadfoot,%
-    asymmetric%
-]{geometry}
+    %includeheadfoot,% include header and footer in textheight
+    asymmetric% twosided layout wher margins are *not* swapped on alternate pages
+  ]{geometry}
 
 %% for double (or other special) spacing
 \RequirePackage{setspace}
 
 %% =============================================================================
-%% 
+%%
 %% =============================================================================
+
 % orphan (i.e., page break immediately after first line of paragraph) penalty
 \clubpenalty=10000 % infinite -- no orphans
 % widow (i.e., page break immediately before last line of paragraph) penalty
@@ -123,47 +177,128 @@
 %%
 %% NOTE that the given code assumes doublespacing is active! Testing the current
 %% spacing using a macro would be a better solution than hardcoding the value.
-\let\oldquote\quote\relax
-\let\endoldquote\endquote\relax
+\let\oldquote=\quote
+\let\endoldquote=\endquote
 \renewenvironment{quote}{%
   \vspace{-.5\baselineskip}%
-  \begin{oldquote}
+  \begin{oldquote}%
 }{%
-  \end{oldquote}
-  \vspace{-.5\baselineskip}
+  \end{oldquote}%
+  \vspace{-.5\baselineskip}%
 }
 
+%% =============================================================================
+%% Commands / Environments
+%% =============================================================================
+
 \renewcommand*\author[1]{
-  \gdef\@author{#1}
+  \global\def\@author{#1}
   % set PDF metadata
   \@ifpackageloaded{hyperref}{
     \hypersetup{pdfauthor = {\@author}}
   }{}
 }
 \renewcommand*\title[1]{
-  \gdef\@title{#1}
+  \global\def\@title{#1}
   % set PDF metadata
   \@ifpackageloaded{hyperref}{
     \hypersetup{pdftitle = {\@title}}
   }{}
 }
-\newcommand*\degree[1]{\gdef\@degree{#1}}
-\newcommand*\field[1]{\gdef\@field{#1}}
+
+\newcommand*\degree[1]{\def\@degree{#1}}
+\newcommand*\field[1]{\def\@field{#1}}
+
+\newcommand*\graduationmonth[1]{\def\@graduationmonth{#1}}
+\newcommand*\graduationyear[1]{\def\@graduationyear{#1}}
+
+% ensure all required information (degree, department (aka "field of study"),
+% graduation month, graduation year) has been provided
+\AtBeginDocument{%
+  \ifx \@degree\undefined 
+    \PackageWarning{\@package}{%
+      missing degree, assuming Ph.D. Use \protect\degree \space in the %
+      preamble to specify the degree%
+    }
+    \degree{Doctor of Philosophy}
+  \fi
+  \ifx \@field\undefined 
+    \PackageError{\@package}{%
+      missing field of study%
+    }{
+      Use \protect\field \space in the preamble to specify the field of study.%
+    }
+  \fi
+  \ifx \@graduationmonth\undefined
+    \PackageError{\@package}{%
+      graduation month undefined%
+    }{%
+      Use \protect\graduationmonth \space in the preamble to specify the month %
+      of graduation, *not* the defense.%
+    }
+  \fi
+  \ifx \@graduationyear\undefined
+    \PackageError{\@package}{%
+      graduation year undefined%
+    }{%
+      Use \protect\graduationyear \space in the preamble to specify the year %
+      of graduation, *not* the defense.%
+    }
+  \fi
+}
 
 \newlength{\hlineheight}
-\setlength{\hlineheight}{.08mm}
+\setlength{\hlineheight}{1pt}
 
-%% Title page
-\let\oldtitlepage\titlepage % save existing macro
-% Ph.D. is the default degree; field of study is required
-\DeclareRobustCommand{\titlepage}{%
-  \thispagestyle{empty} % No header or footer
-  %\setcounter{page}{0} % Don't number the title page!
-  
-  \begingroup
+\def\longmonth{Month}
+\ifcase\month
+  \or\global\def\longmonth{January}
+  \or\global\def\longmonth{February}
+  \or\global\def\longmonth{March}
+  \or\global\def\longmonth{April}
+  \or\global\def\longmonth{May}
+  \or\global\def\longmonth{June}
+  \or\global\def\longmonth{July}
+  \or\global\def\longmonth{August}
+  \or\global\def\longmonth{September}
+  \or\global\def\longmonth{October}
+  \or\global\def\longmonth{November}
+  \or\global\def\longmonth{December}
+\fi
+\edef\formatteddate{\number\day\ \longmonth\ \number\year}
+\def\today{\formatteddate}
+
+% calculate hour
+\newcount\hour
+\hour\time\relax
+\divide\hour by 60
+\edef\hour{\ifnum\hour<10 0\fi\number\hour}
+
+% calculate minute
+\newcount\minute
+\minute\time\relax
+\count255=\hour
+\multiply\count255 by 60
+\advance\minute by -\count255
+\edef\minute{\ifnum\minute<10 0\fi\number\minute}
+
+%\def\meridiem{am}\relax
+%\ifnum\hour > 12
+%  \advance\hour by -12
+%  \def\meridiem{pm}\relax
+%\fi
+
+\edef\formattedtime{\hour:\minute}
+
+\edef\timestamp{\formatteddate\ \formattedtime}
+
+%% title page
+\renewcommand{\maketitle}{%
+  \ifx \option@lineno\option@true \nolinenumbers \fi % no line numbers
+  \begin{titlepage}
     \centering
     
-    \vspace{1in}
+    \vspace*{.5in} % `*' prevents the space from being removed
     \textbf{\Large \@title}\\
     \rule{\textwidth}{\hlineheight}
     A Thesis\\
@@ -173,140 +308,138 @@
     \rule{\textwidth}{\hlineheight}
     In Partial Fulfillment\\
     of the requirements for the Degree\\
-    \ifx \@degree \undefined 
-      \PackageWarning{\@package}{%
-        Missing degree, assuming Ph.D. Use \protect\degree \space in the 
-        preamble to specify the degree.
-      }
-      Doctor of Philosophy
-    \else
-      \@degree\ 
-    \fi
-    \ifx \@field \undefined 
-      \PackageError{\@package}{%
-        Missing field of study. Use \protect\field \space in the preamble to 
-        specify the field of study.
-      }{}
-    \else
-        (\@field)
-    \fi\\
-    by\\
+    \@degree\ (\@field)\\[4ex]
+    by\\[3ex]
     \@author\\
-    \@date\\
+    \@graduationmonth\ \@graduationyear\\
     
-    \ifx \@draft \undefined \else
+    \ifx \option@draft\option@true
       \vfill
       
       \hrule
       \begin{center}
-        DRAFT: \today
+        DRAFT: \timestamp
       \end{center}
       \hrule
     \fi
-  \endgroup
+  \end{titlepage}
   
-  \clearpage
-  \thispagestyle{empty}
+  \thispagestyle{empty} % \endtitlepage => \cleardoublepage, ensure blank
+  \ifx \option@lineno\option@true \linenumbers \fi % re-enable line numbers
 }
-\renewcommand{\maketitle}{\titlepage}
 
-%% Copyright page
+%% copyright page
 \DeclareRobustCommand{\copyrightpage}{
-  \ifx \@hidefrontmatter \undefined
-    \thispagestyle{empty} % No header or footer
-    %\setcounter{page}{0} % Don't number the copyright page
+  \thispagestyle{empty} % no header or footer
+  \ifx \option@hidefront\undefined
+    \ifx \option@lineno\option@true \nolinenumbers \fi % no line numbers
     
-    \ \vfill
-    
-    \begin{centering}
+    % 14 August 2010 - JC
+    % \singlespacing interferes with \begingroup and \centering, but 
+    % \begin{center} has the desired effect
+    \begin{center}
       \singlespacing
       
-      \noindent\textcopyright\ Copyright by\\
-      \@author\\
-      All rights reserved\\
-      \@date\\
-    \end{centering}
+      \ \vfill
+      
+      % copyright block specified by UVa print services
+      \ifx \option@compliantcopyright\option@true
+        \noindent\textcopyright\ Copyright by\\
+        \@author\\
+        All rights reserved\\
+        \@graduationmonth\ \@graduationyear\\
+      \else % more traditional copyright notice
+        \textcopyright\ \@graduationyear\ by \@author
+      \fi
+    \end{center}
     
     \clearpage
+    \ifx \option@lineno\option@true \linenumbers \fi % re-enable line numbers
   \fi
 }
 
-%% Signatures page
-%% 
-%% SUGGESTION ------
-%% center signatures on page (instead of offset to the right)
-\DeclareRobustCommand{\signatures}[1][5]{
-  \providecommand{\committeeSignatures}{
-    % The exact number of signatures might vary
-    % [TeX loop]
-    \count255 = 1 % \count255 is the TeX scratch register => loop counter
-    \loop
-      \signatureline
-      \signatureindent%
-      \ifnum\count255 = 1%
-        Thesis Adviser%
-      \fi%
-      \ifnum\count255 = 2%
-        Committee Chair%
-      \fi%
+%% signatures page
+\newcommand{\signaturestyle}[1]{}
+\def\signatures{%
+  \begingroup
+    % \newcommand is local within a group
+    \newcommand{\signature}[2][]{}
+    \newcommand{\dean}[1]{}
+    
+    \ifx \option@hidefront\undefined
+      \ifx \option@lineno\option@true \nolinenumbers \fi
+      \thispagestyle{plain} % page number in footer
       
-      \ifnum\count255 < #1
-       \advance\count255 by 1
-    \repeat
-  }
-  
-  \ifx \@hidefrontmatter \undefined
-    \thispagestyle{plain} % page number in footer
-    
-    \section*{\centering\Large Approval Sheet}
-    
-    \begin{center}
-      This thesis is submitted in partial fulfillment of the\\
-      requirements for the degree of\\
-      \@degree\ (\@field)
-    \end{center}
-    
-    \newlength{\signaturewidth}
-    \setlength{\signaturewidth}{.8\textwidth}
-    
-    \newlength{\signaturesize}
-    \setlength{\signaturesize}{30pt}
-    
-    \newcommand{\signaturespace}{\addvspace{\signaturesize}}
-    \newcommand{\signatureindent}{\par\noindent\hspace{.2\textwidth}}
-    \newcommand{\signatureline}{\signaturespace\signatureindent \rule{\signaturewidth}{\hlineheight}}
-    
-    \begin{singlespace}
-      \signatureline
-      \signatureindent \@author
+      \section*{\centering\Large Approval Sheet}
+      
+      \begin{center}
+        This thesis is submitted in partial fulfillment of the requirements for the degree of\\
+        \@degree\ (\@field)
+      \end{center}
+     
+      \newlength{\signaturewidth}
+      \setlength{\signaturewidth}{.8\textwidth}
+      
+      \newlength{\signaturesize}
+      \setlength{\signaturesize}{30pt}
+      
+      \newcommand{\signaturespace}{\vspace{\signaturesize}}
+      \newcommand{\signatureindent}{\par\noindent\hspace{.2\textwidth}}
+      
+      \newcommand{\signatureline}[1][]{%
+        \signaturespace%
+        \signatureindent%
+        \makebox[0em][l]{%
+          \makebox[\signaturewidth][c]{
+            \raisebox{.5em}[0pt][0pt]{%
+              \signaturestyle{##1}
+            }
+          }
+        }\rule{\signaturewidth}{\hlineheight}
+      }
+      
+      \renewcommand{\signature}[2][]{\signatureline[##1]\signatureindent##2}
+      \renewcommand{\dean}[1]{\def\@dean{##1}}
+      
+      \singlespacing
+      
+      \signature[\@author]{\@author}
       
       \addvspace{.75\signaturesize}
       \noindent This thesis has been read and approved by the Examining Committee:
-      
-      \committeeSignatures
+  \fi
+}
+\def\endsignatures{%
+  \ifx \option@hidefront\undefined
+      \singlespacing
       
       \addvspace{.75\signaturesize}
       \noindent Accepted for the School of Engineering and Applied Science:
       
-      \signatureline
-      \signatureindent Dean, School of Engineering and Applied Science
-      
-      \signatureindent \@date
-    \end{singlespace}
+      \signature[\ifx\@dean\undefined\else\@dean\fi]{Dean\ifx\@dean\undefined \else\ \@dean\fi, School of Engineering and Applied Science}
+    
+    \begin{center}
+      \@graduationmonth\ \@graduationyear
+    \end{center}
     
     \clearpage
+    \ifx \option@lineno\option@true \linenumbers \fi
   \fi
+  \endgroup
 }
 
 \DeclareRobustCommand{\dedication}[1]{%
-  \ifx \@hidefrontmatter \undefined
+  \ifx \option@hidefront\undefined
     \thispagestyle{plain} % page number in footer
     
-    \begin{center}
+    \begingroup
+      \centering
+      \ifx \option@lineno\option@true \nolinenumbers \fi
+      
       \ \vfill
       \emph{#1}
       \vfill
-    \end{center}
+    \endgroup
     
     \clearpage
   \fi
@@ -335,8 +468,8 @@
 % tables, list of figures, and bibliography itself.
 \let\@oldtableofcontents\tableofcontents
 \renewcommand{\tableofcontents}{%
-  \ifx \@hidefrontmatter \undefined
-    \ifx \@hyper \@undefined \else \phantomsection \fi
+  \ifx \option@hidefront\undefined
+    \ifx \option@hyper\undefined \else \phantomsection \fi
     \addcontentsline{toc}{chapter}{Contents}
     
     \begin{singlespace}
@@ -349,9 +482,9 @@
 
 \let\@oldlistoftables\listoftables
 \renewcommand{\listoftables}{%
-  \ifx \@hidefrontmatter \undefined
+  \ifx \option@hidefront\undefined
     \clearpage
-    \ifx \@hyper \@undefined \else \phantomsection \fi
+    \ifx \option@hyper\undefined \else \phantomsection \fi
     \addcontentsline{toc}{section}{List of Tables}
     
     \begin{singlespace}
@@ -364,9 +497,9 @@
 
 \let\@oldlistoffigures\listoffigures
 \renewcommand{\listoffigures}{%
-  \ifx \@hidefrontmatter \undefined
+  \ifx \option@hidefront\undefined
     \clearpage
-    \ifx \@hyper \@undefined \else \phantomsection \fi
+    \ifx \option@hyper\undefined \else \phantomsection \fi
     \addcontentsline{toc}{section}{List of Figures}
     
     \begin{singlespace}
@@ -381,26 +514,27 @@
 
 \let\@oldbibliography\bibliography\relax
 \renewcommand{\bibliography}[1]{%
-  \ifx \@hidebackmatter \undefined
-    \ifx \@hyper \@undefined \else \phantomsection \fi
+  \ifx \option@hideback\undefined
+    \ifx \option@hyper\undefined \else \phantomsection \fi
     \addcontentsline{toc}{chapter}{Bibliography}
     
-    %\begin{raggedright}
-    \begin{singlespace}
+    \begingroup
+      %\raggedright
+      \singlespacing
+      
       \setlength{\parskip}{\baselineskip}
       
       \renewcommand{\MakeUppercase}[1]{##1}
       \@oldbibliography{#1}
-    \end{singlespace}
-    %\end{raggedright}
+    \endgroup
   \fi
 }
 
 \def\ps@myheadings{%
   \def\@oddhead{\rightmark\hfill\thepage}%
-  \def\@evenhead{\ifx \@twoside \undefined \else \thepage\hspace{2em} \fi \leftmark \ifx \@twoside \undefined \hfill\thepage \else \hfill \fi}%
-  \def\@oddfoot{\ifx \@draft \undefined \else \hfill DRAFT: \today \hfill \fi}%
-  \def\@evenfoot{\ifx \@draft \undefined \else \hfill DRAFT: \today \hfill \fi}%
+  \def\@evenhead{\ifx \option@twoside\undefined \else \thepage\hspace{2em} \fi \leftmark \ifx \option@twoside \undefined \hfill\thepage \else \hfill \fi}%
+  \def\@oddfoot{\ifx \option@draft\option@true \hfill DRAFT: \timestamp \hfill \fi}%
+  \def\@evenfoot{\ifx \option@draft\option@true \hfill DRAFT: \timestamp \hfill \fi}%
 }
 \pagestyle{myheadings}
 
