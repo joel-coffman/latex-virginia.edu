@@ -3,12 +3,12 @@
 %%   Engineering and Applied Science (SEAS) at the University of Virginia.
 %% Author: Joel Coffman <joel.coffman@email.virginia.edu>
 
-\def\@package{uva-seas-thesis}
-\def\@version{1.0.0}
-\def\@lastmodified{2009/04/14} % YYYY/MM/DD (required)
+\def\package@name{uva-seas-thesis}
+\def\package@version{1.0.0}
+\def\package@modified{2010/08/16} % YYYY/MM/DD (required)
 
 %% =============================================================================
-%% Change Log
+%% CHANGE LOG
 %% =============================================================================
 %% 1.0.0
 %% - Initial commit to repository
@@ -17,20 +17,23 @@
 %% - Improved handling of front matter constructs (e.g., signatures page)
 %% =============================================================================
 
+% no idea if the date is correct or not; not even certain how to test on an old 
+% version...
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesPackage{\@package}[%
-    \@lastmodified\ UVa SEAS Thesis package by Joel Coffman (v. \@version)
+\ProvidesPackage{\package@name}[%
+    \package@modified\ UVa SEAS Thesis package by Joel Coffman %
+    (v. \package@version)%
 ]
 
 %% =============================================================================
-%% Constants
+%% CONSTANTS
 %% =============================================================================
 
 \def\option@true{true}\relax
 \def\option@false{false}\relax
 
 %% =============================================================================
-%% Options
+%% OPTIONS
 %% =============================================================================
 
 %% bind | nobind
@@ -62,6 +65,8 @@
 %% final
 
 %% hidefront | hideback | hidefrontback
+% NOTE: \if@mainmatter is defined by book.cls for determining if the document is
+% in its main matter (verses front or back matter).
 \DeclareOption{hidefront}{
   \let\option@hidefront=\option@true
 }
@@ -96,9 +101,32 @@
 % NOTE: No packages may be included before \ProcessOptions
 
 %% =============================================================================
-%% Required packages
+%% PACKAGES
 %% =============================================================================
 
+%% REQUIRED --------------------------------------------------------------------
+
+% Set appropriate margins. According to Form G122, the left margin must be 1.5 
+% inches and the right, top, and bottom margins all 1 inch. All text *except 
+% page numbers* should not enter the margin.
+\RequirePackage[%
+    inner=% toward binding (i.e. left unless twoside is specified)
+        \ifx \option@bind\option@true %
+          1.5in %
+        \else %
+          1in %
+        \fi,%
+    outer=1in,% away from binding
+    top=1in,%
+    bottom=1in,%
+    %includeheadfoot,% include header and footer in textheight
+    asymmetric% twosided layout wher margins are *not* swapped on alternate pages
+  ]{geometry}
+
+% for double (or other special) spacing
+\RequirePackage{setspace}
+
+%% OPTIONAL --------------------------------------------------------------------
 %% booktabs
 \ifx \option@booktabs\option@true
   \RequirePackage{booktabs}
@@ -110,13 +138,11 @@
   \RequirePackage{draftwatermark} % print watermark across page
   \RequirePackage[pagewise]{lineno} % line numbers (per page)
   
-  \SetWatermarkLightness{0.9} % lighten watermark
-  \AtBeginDocument{\linenumbers} % number lines
-  
-  % COMMENT the line below to disable line numbers on drafts
+  % line numbers on drafts
   \let\option@lineno=\option@true % define additional option value
 \fi
 
+%% hyper
 \ifx \option@hyper\option@true
   \RequirePackage[%
       colorlinks=true,% color links instead of using boxes
@@ -140,28 +166,8 @@
   \newcommand{\texorpdfstring}[2]{#1}
 \fi
 
-% Set appropriate margins. According to Form G122, the left margin must be 1.5 
-% inches and the right, top, and bottom margins all 1 inch. All text *except 
-% page numbers* should not enter the margin.
-\RequirePackage[%
-    inner=% toward binding (i.e. left unless twoside is specified)
-        \ifx \option@bind\option@true %
-          1.5in %
-        \else %
-          1in %
-        \fi,%
-    outer=1in,% away from binding
-    top=1in,%
-    bottom=1in,%
-    %includeheadfoot,% include header and footer in textheight
-    asymmetric% twosided layout wher margins are *not* swapped on alternate pages
-  ]{geometry}
-
-%% for double (or other special) spacing
-\RequirePackage{setspace}
-
 %% =============================================================================
-%%
+%% CONFIGURATION
 %% =============================================================================
 
 % orphan (i.e., page break immediately after first line of paragraph) penalty
@@ -172,11 +178,21 @@
 % double space the complete document
 \AtBeginDocument{\doublespacing}
 
-%% Counter bug for spacing quotes -- too much whitespace is currently inserted 
-%% (a blank (doublespaced) line before and after the quote environment).
-%%
-%% NOTE that the given code assumes doublespacing is active! Testing the current
-%% spacing using a macro would be a better solution than hardcoding the value.
+% draft watermark
+\ifx \option@draft\option@true
+  \SetWatermarkLightness{0.9} % lighten watermark
+\fi
+
+% line numbers
+\ifx \option@lineno\option@true
+  \AtBeginDocument{\linenumbers} % number lines
+\fi
+
+% Counter bug for spacing quotes -- too much whitespace is currently inserted 
+% (a blank (doublespaced) line before and after the quote environment).
+%
+% NOTE that the given code assumes doublespacing is active! Testing the current
+% spacing using a macro would be a better solution than hardcoding the value.
 \let\oldquote=\quote
 \let\endoldquote=\endquote
 \renewenvironment{quote}{%
@@ -188,57 +204,63 @@
 }
 
 %% =============================================================================
-%% Commands / Environments
+%% COMMANDS / ENVIRONMENTS
 %% =============================================================================
 
+% NOTE: The starred version of newcommand (and its derivatives) denote commands 
+% that will not accept paragraph breaks (e.g., two blank lines raise an 
+% immediate error).
+
+% redefine \author to set PDF metadata (if appropriate)
 \renewcommand*\author[1]{
   \global\def\@author{#1}
   % set PDF metadata
-  \@ifpackageloaded{hyperref}{
+  \ifx \option@hyper\option@true
     \hypersetup{pdfauthor = {\@author}}
-  }{}
+  \fi
 }
+% redefine \title to set PDF metadata (if appropriate)
 \renewcommand*\title[1]{
   \global\def\@title{#1}
   % set PDF metadata
-  \@ifpackageloaded{hyperref}{
+  \ifx \option@hyper\option@true
     \hypersetup{pdftitle = {\@title}}
-  }{}
+  \fi
 }
 
-\newcommand*\degree[1]{\def\@degree{#1}}
-\newcommand*\field[1]{\def\@field{#1}}
+\newcommand*\degree[1]{\def\graduation@degree{#1}}
+\newcommand*\program[1]{\def\graduation@program{#1}}
 
-\newcommand*\graduationmonth[1]{\def\@graduationmonth{#1}}
-\newcommand*\graduationyear[1]{\def\@graduationyear{#1}}
+\newcommand*\graduationmonth[1]{\def\graduation@month{#1}}
+\newcommand*\graduationyear[1]{\def\graduation@year{#1}}
 
 % ensure all required information (degree, department (aka "field of study"),
 % graduation month, graduation year) has been provided
 \AtBeginDocument{%
-  \ifx \@degree\undefined 
-    \PackageWarning{\@package}{%
+  \ifx \graduation@degree\undefined 
+    \PackageWarning{\package@name}{%
       missing degree, assuming Ph.D. Use \protect\degree \space in the %
       preamble to specify the degree%
     }
     \degree{Doctor of Philosophy}
   \fi
-  \ifx \@field\undefined 
-    \PackageError{\@package}{%
+  \ifx \graduation@program\undefined 
+    \PackageError{\package@name}{%
       missing field of study%
     }{
-      Use \protect\field \space in the preamble to specify the field of study.%
+      Use \protect\program \space in the preamble to specify the field of study.%
     }
   \fi
-  \ifx \@graduationmonth\undefined
-    \PackageError{\@package}{%
+  \ifx \graduation@month\undefined
+    \PackageError{\package@name}{%
       graduation month undefined%
     }{%
       Use \protect\graduationmonth \space in the preamble to specify the month %
       of graduation, *not* the defense.%
     }
   \fi
-  \ifx \@graduationyear\undefined
-    \PackageError{\@package}{%
+  \ifx \graduation@year\undefined
+    \PackageError{\package@name}{%
       graduation year undefined%
     }{%
       Use \protect\graduationyear \space in the preamble to specify the year %
@@ -252,18 +274,18 @@
 
 \def\longmonth{Month}
 \ifcase\month
-  \or\global\def\longmonth{January}
-  \or\global\def\longmonth{February}
-  \or\global\def\longmonth{March}
-  \or\global\def\longmonth{April}
-  \or\global\def\longmonth{May}
-  \or\global\def\longmonth{June}
-  \or\global\def\longmonth{July}
-  \or\global\def\longmonth{August}
-  \or\global\def\longmonth{September}
-  \or\global\def\longmonth{October}
-  \or\global\def\longmonth{November}
-  \or\global\def\longmonth{December}
+  \or\def\longmonth{January}
+  \or\def\longmonth{February}
+  \or\def\longmonth{March}
+  \or\def\longmonth{April}
+  \or\def\longmonth{May}
+  \or\def\longmonth{June}
+  \or\def\longmonth{July}
+  \or\def\longmonth{August}
+  \or\def\longmonth{September}
+  \or\def\longmonth{October}
+  \or\def\longmonth{November}
+  \or\def\longmonth{December}
 \fi
 \edef\formatteddate{\number\day\ \longmonth\ \number\year}
 \def\today{\formatteddate}
@@ -308,10 +330,10 @@
     \rule{\textwidth}{\hlineheight}
     In Partial Fulfillment\\
     of the requirements for the Degree\\
-    \@degree\ (\@field)\\[4ex]
+    \graduation@degree\ (\graduation@program)\\[4ex]
     by\\[3ex]
     \@author\\
-    \@graduationmonth\ \@graduationyear\\
+    \graduation@month\ \graduation@year\\
     
     \ifx \option@draft\option@true
       \vfill
@@ -347,9 +369,9 @@
         \noindent\textcopyright\ Copyright by\\
         \@author\\
         All rights reserved\\
-        \@graduationmonth\ \@graduationyear\\
+        \graduation@month\ \graduation@year\\
       \else % more traditional copyright notice
-        \textcopyright\ \@graduationyear\ by \@author
+        \textcopyright\ \graduation@year\ by \@author
       \fi
     \end{center}
     
@@ -374,7 +396,7 @@
       
       \begin{center}
         This thesis is submitted in partial fulfillment of the requirements for the degree of\\
-        \@degree\ (\@field)
+        \graduation@degree\ (\graduation@program)
       \end{center}
      
       \newlength{\signaturewidth}
@@ -419,7 +441,7 @@
       \signature[\ifx\@dean\undefined\else\@dean\fi]{Dean\ifx\@dean\undefined \else\ \@dean\fi, School of Engineering and Applied Science}
     
     \begin{center}
-      \@graduationmonth\ \@graduationyear
+      \graduation@month\ \graduation@year
     \end{center}
     
     \clearpage
@@ -434,7 +456,7 @@
     
     \begingroup
       \centering
-      \ifx \option@lineno\option@true \nolinenumbers \fi
+      \ifx \option@lineno\option@true \nolinenumbers \fi % no line numbers, ends at end of group
       
       \ \vfill
       \emph{#1}
