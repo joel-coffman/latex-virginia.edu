@@ -36,6 +36,14 @@
 %% OPTIONS
 %% =============================================================================
 
+%% ams | noams
+\DeclareOption{ams}{
+  \let\option@ams=\option@true
+}
+\DeclareOption{noams}{
+  \let\option@ams=\option@false
+}
+
 %% bind | nobind
 \DeclareOption{bind}{
   \let\option@bind=\option@true
@@ -62,8 +70,6 @@
   \let\option@draft=\option@true
 }
 
-%% final
-
 %% hidefront | hideback | hidefrontback
 % NOTE: \if@mainmatter is defined by book.cls for determining if the document is
 % in its main matter (verses front or back matter).
@@ -83,6 +89,11 @@
   \let\option@hyper=\option@true
 }
 
+%% final
+\DeclareOption{final}{
+  \let\option@final=\option@true
+}
+
 %% openany
 \DeclareOption{openany}{
   \let\option@openany=\option@true
@@ -94,11 +105,23 @@
 }
 
 % execute `default' options
-\ExecuteOptions{booktabs,nobind}
+\ExecuteOptions{ams,booktabs,nobind}
 % process the specified options
 \ProcessOptions\relax % \relax avoids unnecessary lookahead due to * from
 
 % NOTE: No packages may be included before \ProcessOptions
+
+%% final
+% This final option overrides all others to create a bound version.
+\ifx \option@final\option@true
+  \let\option@bind=\option@true
+  \let\option@draft=\option@false
+  \let\option@hidefront=\option@false
+  \let\option@hideback=\option@false
+  \let\option@hyper=\option@false % disable hyper to eliminate (link) colors
+  \let\option@openany=\option@false
+  \let\option@twoside=\option@false
+\fi
 
 %% =============================================================================
 %% PACKAGES
@@ -111,7 +134,7 @@
 % page numbers* should not enter the margin.
 \RequirePackage[%
     inner=% toward binding (i.e. left unless twoside is specified)
-        \ifx \option@bind\option@true %
+        \ifx \option@bind\option@true % only use 1.5-inch margin for bound copies
           1.5in %
         \else %
           1in %
@@ -120,13 +143,21 @@
     top=1in,%
     bottom=1in,%
     %includeheadfoot,% include header and footer in textheight
-    asymmetric% twosided layout wher margins are *not* swapped on alternate pages
+    asymmetric% twosided layout where margins are *not* swapped on alternate pages
   ]{geometry}
+
+% for capitalizing the first letter of words
+\RequirePackage{mfirstuc}
 
 % for double (or other special) spacing
 \RequirePackage{setspace}
 
 %% OPTIONAL --------------------------------------------------------------------
+%% ams
+\ifx \option@ams\option@true
+  \RequirePackage{amsmath}
+\fi
+
 %% booktabs
 \ifx \option@booktabs\option@true
   \RequirePackage{booktabs}
@@ -152,7 +183,8 @@
       hyperfootnotes=false,% disable links to footnotes (because feature is broken)
       hyperindex,% make page numbers in index into hyperlinks
       %implicit=false,% don't redefine LaTeX internals (e.g., \label)
-      pdfstartview={FitH}% startup page view: fit width of page to window
+      pdfstartview={FitH},% startup page view: fit width of page to window
+      bookmarks
   ]{hyperref}%pdfborder={0 0 0}
   
   % fix problem with hyperref that hyperlinks *below* the caption of floats
@@ -163,7 +195,7 @@
   % specified; the PDF name is used by hyperref for link names. Because the 
   % command is not standard, the definition allows its use even when not using 
   % the hyperref package.
-  \newcommand{\texorpdfstring}[2]{#1}
+  \providecommand{\texorpdfstring}[2]{#1}
 \fi
 
 %% =============================================================================
@@ -187,6 +219,8 @@
 \ifx \option@lineno\option@true
   \AtBeginDocument{\linenumbers} % number lines
 \fi
+
+%% =============================================================================
 
 % Counter bug for spacing quotes -- too much whitespace is currently inserted 
 % (a blank (doublespaced) line before and after the quote environment).
@@ -230,6 +264,7 @@
 
 \newcommand*\degree[1]{\def\graduation@degree{#1}}
 \newcommand*\program[1]{\def\graduation@program{#1}}
+\newcommand*\documenttype[1]{\def\document@type{#1}}
 
 \newcommand*\graduationmonth[1]{\def\graduation@month{#1}}
 \newcommand*\graduationyear[1]{\def\graduation@year{#1}}
@@ -251,6 +286,10 @@
       Use \protect\program \space in the preamble to specify the field of study.%
     }
   \fi
+  \ifx \document@type\undefined
+    \def\document@type{thesis}
+  \fi
+  
   \ifx \graduation@month\undefined
     \PackageError{\package@name}{%
       graduation month undefined%
@@ -323,7 +362,7 @@
     \vspace*{.5in} % `*' prevents the space from being removed
     \textbf{\Large \@title}\\
     \rule{\textwidth}{\hlineheight}
-    A Thesis\\
+    A \xmakefirstuc{\document@type}\\
     Presented to\\
     the Faculty of the School of Engineering and Applied Science\\
     University of Virginia\\
@@ -353,7 +392,8 @@
 %% copyright page
 \DeclareRobustCommand{\copyrightpage}{
   \thispagestyle{empty} % no header or footer
-  \ifx \option@hidefront\undefined
+  \ifx \option@hidefront\option@true
+  \else
     \ifx \option@lineno\option@true \nolinenumbers \fi % no line numbers
     
     % 14 August 2010 - JC
@@ -388,14 +428,15 @@
     \newcommand{\signature}[2][]{}
     \newcommand{\dean}[1]{}
     
-    \ifx \option@hidefront\undefined
+    \ifx \option@hidefront\option@true
+    \else
       \ifx \option@lineno\option@true \nolinenumbers \fi
       \thispagestyle{plain} % page number in footer
       
       \section*{\centering\Large Approval Sheet}
       
       \begin{center}
-        This thesis is submitted in partial fulfillment of the requirements for the degree of\\
+        This \document@type\ is submitted in partial fulfillment of the requirements for the degree of\\
         \graduation@degree\ (\graduation@program)
       \end{center}
      
@@ -411,13 +452,16 @@
       \newcommand{\signatureline}[1][]{%
         \signaturespace%
         \signatureindent%
-        \makebox[0em][l]{%
-          \makebox[\signaturewidth][c]{
-            \raisebox{.5em}[0pt][0pt]{%
-              \signaturestyle{##1}
-            }
-          }
-        }\rule{\signaturewidth}{\hlineheight}
+        \ifx \option@final\undefined %
+          \makebox[0em][l]{%
+            \makebox[\signaturewidth][c]{%
+              \raisebox{.5em}[0pt][0pt]{%
+                \signaturestyle{##1}%
+              }%
+            }%
+          }%
+        \fi%
+        \rule{\signaturewidth}{\hlineheight}
       }
       
       \renewcommand{\signature}[2][]{\signatureline[##1]\signatureindent##2}
@@ -428,11 +472,12 @@
       \signature[\@author]{\@author}
       
       \addvspace{.75\signaturesize}
-      \noindent This thesis has been read and approved by the Examining Committee:
+      \noindent This \document@type\ has been read and approved by the Examining Committee:
   \fi
 }
 \def\endsignatures{%
-  \ifx \option@hidefront\undefined
+  \ifx \option@hidefront\option@true
+  \else
       \singlespacing
       
       \addvspace{.75\signaturesize}
@@ -451,7 +496,8 @@
 }
 
 \DeclareRobustCommand{\dedication}[1]{%
-  \ifx \option@hidefront\undefined
+  \ifx \option@hidefront\option@true
+  \else
     \thispagestyle{plain} % page number in footer
     
     \begingroup
@@ -475,9 +521,9 @@
   \chaptermark{}%
 }
 
-\newenvironment{acknowledgements}[0]{%
+\newenvironment{acknowledgments}[0]{%
   \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
-  \chapter{Acknowledgements}%
+  \chapter{Acknowledgments}%
 }{%
   \clearpage%
   \chaptermark{}%
@@ -490,8 +536,9 @@
 % tables, list of figures, and bibliography itself.
 \let\@oldtableofcontents\tableofcontents
 \renewcommand{\tableofcontents}{%
-  \ifx \option@hidefront\undefined
-    \ifx \option@hyper\undefined \else \phantomsection \fi
+  \ifx \option@hidefront\option@true
+  \else
+    \ifx \option@hyper\option@true \phantomsection \fi
     \addcontentsline{toc}{chapter}{Contents}
     
     \begin{singlespace}
@@ -504,9 +551,10 @@
 
 \let\@oldlistoftables\listoftables
 \renewcommand{\listoftables}{%
-  \ifx \option@hidefront\undefined
+  \ifx \option@hidefront\option@true
+  \else
     \clearpage
-    \ifx \option@hyper\undefined \else \phantomsection \fi
+    \ifx \option@hyper\option@true \phantomsection \fi
     \addcontentsline{toc}{section}{List of Tables}
     
     \begin{singlespace}
@@ -519,9 +567,10 @@
 
 \let\@oldlistoffigures\listoffigures
 \renewcommand{\listoffigures}{%
-  \ifx \option@hidefront\undefined
+  \ifx \option@hidefront\option@true
+  \else
     \clearpage
-    \ifx \option@hyper\undefined \else \phantomsection \fi
+    \ifx \option@hyper\option@true \phantomsection \fi
     \addcontentsline{toc}{section}{List of Figures}
     
     \begin{singlespace}
@@ -536,8 +585,9 @@
 
 \let\@oldbibliography\bibliography\relax
 \renewcommand{\bibliography}[1]{%
-  \ifx \option@hideback\undefined
-    \ifx \option@hyper\undefined \else \phantomsection \fi
+  \ifx \option@hideback\option@true
+  \else
+    \ifx \option@hyper\option@true \phantomsection \fi
     \addcontentsline{toc}{chapter}{Bibliography}
     
     \begingroup
@@ -554,9 +604,26 @@
 
 \def\ps@myheadings{%
   \def\@oddhead{\rightmark\hfill\thepage}%
-  \def\@evenhead{\ifx \option@twoside\undefined \else \thepage\hspace{2em} \fi \leftmark \ifx \option@twoside \undefined \hfill\thepage \else \hfill \fi}%
-  \def\@oddfoot{\ifx \option@draft\option@true \hfill DRAFT: \timestamp \hfill \fi}%
-  \def\@evenfoot{\ifx \option@draft\option@true \hfill DRAFT: \timestamp \hfill \fi}%
+  \def\@evenhead{%
+      \ifx \option@twoside\option@true %
+        \thepage\hfill %
+      \fi %
+      \leftmark %
+      \ifx \option@twoside\option@true %
+      \else %
+        \hfill\thepage %
+      \fi%
+  }%
+  \def\@oddfoot{%
+      \ifx \option@draft\option@true %
+        \hfill DRAFT: \timestamp \hfill %
+      \fi%
+  }%
+  \def\@evenfoot{%
+      \ifx \option@draft\option@true %
+        \hfill DRAFT: \timestamp \hfill %
+      \fi%
+  }%
 }
 \pagestyle{myheadings}
 
