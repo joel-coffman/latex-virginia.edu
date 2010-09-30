@@ -74,6 +74,7 @@ The package options and the packages they load are listed below.
   \item[\option{booktabs}] \package{booktabs}
   \item[\option{draft}] \package{type1cm}, \package{draftwatermark}, \package{lineno}
   \item[\option{hyper}] \package{hyperref}, \package{hypcap}
+  \item[\option{microtype}] \package{microtype}
 \end{description*}
 
 %-------------------------------------------------------------------------------
@@ -110,6 +111,10 @@ Loads the \package{hyperref} package to create hyperlinks in the PDF document an
 Creates a ``final'' (i.e., suitable for binding) version of the document.
 Specifying this option implies the \option{bind} option and disables the \option{draft}, \option{hidefront}, \option{hideback}, \option{hidefrontback}, \option{hyper}, \option{openany}, and \option{twoside} options.
 Note that this package cannot override options specified to the document class (e.g., \option{openany} or \option{twoside}); these global options should be removed to guarantee the desired result is achieved.
+
+\subsection{\default{\option{microtype}} \textbar\ \option{nomicrotype}}
+Loads the \package{microtype} package to improve the microtypography of the document.
+Note that the \package{microtype} package relies on pdf\TeX; you should disable this option if you are creating DVIs.
 
 \subsection{\option{openany}}
 This option redefines the \texttt{\textbackslash cleardoublepage} command as \texttt{\textbackslash clearpage} so chapters, etc. may start on odd or even numbered pages.

@@ -4,17 +4,24 @@
 %% Author: Joel Coffman <joel.coffman@email.virginia.edu>
 
 \def\package@name{uva-seas-thesis}
-\def\package@version{1.0.0}
-\def\package@modified{2010/08/16} % YYYY/MM/DD (required)
+\def\package@version{1.0.6}
+\def\package@modified{2010/09/30} % YYYY/MM/DD (required)
 
 %% =============================================================================
 %% CHANGE LOG
 %% =============================================================================
-%% 1.0.0
-%% - Initial commit to repository
-%% 1.0.x
+%% 0.9.0
+%% - Initial version
+%% 1.0.3
 %% - Readability rewrite
 %% - Improved handling of front matter constructs (e.g., signatures page)
+%% 1.0.4
+%% - Reorganized file structure and additional commenting
+%% 1.0.5
+%% - Added ams and final options
+%% 1.0.6
+%% - Added microtype option
+%% - Left-justified bibliography
 %% =============================================================================
 
 % no idea if the date is correct or not; not even certain how to test on an old 
@@ -94,6 +101,13 @@
   \let\option@final=\option@true
 }
 
+\DeclareOption{microtype}{
+  \let\option@microtype=\option@true
+}
+\DeclareOption{nomicrotype}{
+  \let\option@microtype=\option@false
+}
+
 %% openany
 \DeclareOption{openany}{
   \let\option@openany=\option@true
@@ -105,7 +119,7 @@
 }
 
 % execute `default' options
-\ExecuteOptions{ams,booktabs,nobind}
+\ExecuteOptions{ams,booktabs,microtype,nobind}
 % process the specified options
 \ProcessOptions\relax % \relax avoids unnecessary lookahead due to * from
 
@@ -196,6 +210,11 @@
   % command is not standard, the definition allows its use even when not using 
   % the hyperref package.
   \providecommand{\texorpdfstring}[2]{#1}
+\fi
+
+%% microtype
+\ifx \option@microtype\option@true
+  \RequirePackage[final]{microtype}
 \fi
 
 %% =============================================================================
@@ -591,7 +610,7 @@
     \addcontentsline{toc}{chapter}{Bibliography}
     
     \begingroup
-      %\raggedright
+      \raggedright
       \singlespacing
       
       \setlength{\parskip}{\baselineskip}
