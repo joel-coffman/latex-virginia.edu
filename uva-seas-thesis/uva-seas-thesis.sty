@@ -22,6 +22,8 @@
 %% 1.0.6
 %% - Added microtype option
 %% - Left-justified bibliography
+%% 1.0.x
+%% - Fixed bug where the acknowledgements (and probably abstract) were numbered
 %% =============================================================================
 
 % no idea if the date is correct or not; not even certain how to test on an old 
@@ -534,7 +536,7 @@
 
 \newenvironment{abstract}[0]{%
   \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
-  \chapter{Abstract}%
+  \chapter*{Abstract}%
 }{
   \clearpage%
   \chaptermark{}%
@@ -542,7 +544,7 @@
 
 \newenvironment{acknowledgments}[0]{%
   \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
-  \chapter{Acknowledgments}%
+  \chapter*{Acknowledgments}%
 }{%
   \clearpage%
   \chaptermark{}%
