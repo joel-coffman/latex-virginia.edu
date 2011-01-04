@@ -1,7 +1,9 @@
 \documentclass[10pt]{article}
 
+\usepackage{booktabs}
 \usepackage[acronym]{glossaries}
 \usepackage{listings}
+\usepackage{longtable}
 \usepackage{mdwlist}
 \usepackage{url}
 \usepackage[svgnames]{xcolor}
@@ -32,7 +34,7 @@
 
 \newcommand{\thispackage}{\package{uva-seas-thesis}}
 
-\title{\thispackage}
+\title{\thispackage\\{\small (version 1.1.15)}}
 \author{
   Joel Coffman\\
   \url{jcoffman@cs.virginia.edu}
@@ -119,6 +121,10 @@ Note that the \package{microtype} package relies on pdf\TeX; you should disable 
 \subsection{\option{openany}}
 This option redefines the \texttt{\textbackslash cleardoublepage} command as \texttt{\textbackslash clearpage} so chapters, etc. may start on odd or even numbered pages.
 
+\subsection{\option{sequential}}
+This option numbers tables, figures, equations, etc. \emph{sequentially} in the order in which they appear in the \emph{\LaTeX} document.
+This feature is experimental and support may be dropped from future releases.
+
 \subsection{\option{twoside}}
 If the bind option is specified, this option assumes pages will be printed doublesided (i.e., the inner margin alternates between the left and right sides of the page).
 
@@ -192,6 +198,8 @@ Specifies the name of the dean of the School of Engineering and Applied Science.
 
 \subsection{\environment{abstract}}
 Defines an abstract environment (not part of the traditional \LaTeX\ book class) for the document's abstract.
+\Gls{UVa} Print Services~\cite{uvaprint2001thesis} specifies that the abstract must be 350 words or less;
+the length limit is \emph{not} enforced by this package (it may not even be possible to enforce using \LaTeX).
 
 \begin{lstlisting}[gobble=2]
   \begin{abstract}
@@ -219,6 +227,86 @@ When \package{hyperref} is \emph{not} loaded, this command is defined so it may 
 \lstinputlisting[frame=none]{example/thesis.tex}
 
 %-------------------------------------------------------------------------------
-%\section{Release Notes}\label{section:release notes}
+\section{Release Notes}\label{section:release notes}
+The following summarizes the version history of this package:
+\begin{longtable}{r@{.}r@{.}rp{.8\linewidth}}
+  %\toprule
+  \multicolumn{3}{c}{Version} & Comments\\
+  \midrule
+  0	& 9	& 0	& Initial version, extracted from formatting personal thesis\\[2ex] % FORMATTING
+  1	& 0	& 3	& Improved handling of front matter constructs (e.g., signatures page)\\
+  1	& 0	& 5	& Added \option{ams} and \option{final} options\\
+  1	& 0	& 6	& Added \option{microtype} option; left-justified bibliography\\
+  1	& 1	& 15	& Fixed bug where acknowledgments (and probably abstract) were numbered; added option for sequential numbering of equations, figures, tables, etc.\\
+  %\bottomrule
+\end{longtable}
+
+\subsection*{Known issues}
+The following is a list of all known inconsistencies between this package and the guidelines set forth by the University of Virginia and \gls{SEAS}.
+If you find additional deviations, please email \url{jcoffman@cs.virginia.edu}.
+
+\paragraph{Font size}
+\Gls{SEAS}~\cite{seas2008instructions} mandates a standard typeface with 10 or 12 characters per inch.
+This package does not currently enforce this requirement---it is left to the author to choose a font face and size that adheres to this specification.
+
+\paragraph{Page order}
+The suggested page order~\cite{uvaprint2001thesis, seas2008instructions} is as follows:
+\begin{itemize*}
+  \item Thesis
+  \begin{itemize*}
+    \item Title page
+    \item Abstract or introduction
+    \item Signature page
+  \end{itemize*}
+  
+  \item Dissertation
+  \begin{itemize*}
+    \item Title page
+    \item Copyright page
+    \item Abstract
+    \item Signatures page
+    \item Dedication page
+    \item Body of text
+  \end{itemize*}
+\end{itemize*}
+This package does not enforce this suggested page ordering.
+
+Please be aware that \gls{SEAS}~\cite{seas2008instructions} is actually inconsistent regarding the page order.
+Elsewhere it is stated that the title page should be immediately followed by the approval (signatures) page and the abstract.
+
+In addition, \gls{SEAS}~\cite{seas2008instructions} mandates that a list of symbols follow the list of figures.
+In the example document (Section~\ref{section:example}), it is assumed that the list of tables precedes the list of figures, but this order is not specified.
+This package will not automatically produce a list of symbols; the \package{glossaries} package provides one way to create such a list.
+Please note that \gls{SEAS} also requires the symbols to appear in alphabetical order with Arabic symbols followed by Greek symbols.
+
+\paragraph{Page numbers}
+Page numbers should appear in the upper-right corner of pages~\cite{uvaprint2001thesis, seas2008instructions}.
+While this policy is followed in general, page numbers appear at the bottom of pages which start a new chapter.
+(This deviation is consistent with many other publications.)
+
+\paragraph{Header and Footer}
+\Gls{SEAS}~\cite{seas2008instructions} requires page numbers to appear in the page margin and all other text to be kept within the page's margins.
+This requirement is satisfied by \emph{not} including the page header and footer in the page's text area.
+Including chapter headers (e.g., the name of the chapter) in the header technically violates \gls{SEAS}['s] requirements.
+
+\paragraph{Title and Signatures pages}
+Please note that this package takes minor liberties with regards to the example title and signatures pages provided by \Gls{SEAS}~\cite{seas2008instructions}.
+Although the example is not reproduced perfectly, the deviations are minor.
+
+\paragraph{Abstract}
+Both \Gls{UVa} Print Services~\cite{uvaprint2001thesis} and \gls{SEAS}~\cite{seas2008instructions} specify that the abstract must be 350 words or less.\footnote{
+  Elsewhere, \gls{SEAS} states that the abstract must not exceed 600 words.
+}
+This requirement is not enforced by this package as it's unclear that \LaTeX\ even has facilities for obtaining accurate word counts.
+
+\paragraph{Figures}
+\Gls{SEAS}~\cite{seas2008instructions} requires each figure to follow its text reference as closely as possible.
+Figures (and presumably other floats) should \emph{not} appear at the end of the thesis (e.g., as a ``page of floats'').
+In addition, figures should be centered within the page margins.
+None of these requirements are enforced by this package.
+
+%-------------------------------------------------------------------------------
+\bibliographystyle{abbrv}
+\bibliography{references}
 
 \end{document}

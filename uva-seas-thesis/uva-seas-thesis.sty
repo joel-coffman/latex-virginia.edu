@@ -1,11 +1,11 @@
 %% uva-seas-thesis
 %%   LaTeX style for writing a Ph.D. (or Masters) thesis for the School of 
 %%   Engineering and Applied Science (SEAS) at the University of Virginia.
-%% Author: Joel Coffman <joel.coffman@email.virginia.edu>
+%% Author: Joel Coffman <jcoffman@cs.virginia.edu>
 
-\def\package@name{uva-seas-thesis}
-\def\package@version{1.0.6}
-\def\package@modified{2010/09/30} % YYYY/MM/DD (required)
+\def\uvaseasthesis@name{uva-seas-thesis}
+\def\uvaseasthesis@version{1.1.15}
+\def\uvaseasthesis@modified{2011/01/04} % YYYY/MM/DD (required)
 
 %% =============================================================================
 %% CHANGE LOG
@@ -22,121 +22,142 @@
 %% 1.0.6
 %% - Added microtype option
 %% - Left-justified bibliography
-%% 1.0.x
+%% 1.1.15
 %% - Fixed bug where the acknowledgements (and probably abstract) were numbered
+%% - Option for sequential numbering of equations, tables, and figures
+%% - Rewrote internals to use newif for option handling
 %% =============================================================================
 
 % no idea if the date is correct or not; not even certain how to test on an old 
 % version...
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesPackage{\package@name}[%
-    \package@modified\ UVa SEAS Thesis package by Joel Coffman %
-    (v. \package@version)%
+\ProvidesPackage{\uvaseasthesis@name}[%
+    \uvaseasthesis@modified\ UVa SEAS Thesis package by Joel Coffman %
+    (v. \uvaseasthesis@version)%
 ]
-
-%% =============================================================================
-%% CONSTANTS
-%% =============================================================================
-
-\def\option@true{true}\relax
-\def\option@false{false}\relax
 
 %% =============================================================================
 %% OPTIONS
 %% =============================================================================
 
+%% start options -- listed in alphabetical order
 %% ams | noams
+\newif\if@uvaseasthesis@ams\relax
 \DeclareOption{ams}{
-  \let\option@ams=\option@true
+  \@uvaseasthesis@amstrue
 }
 \DeclareOption{noams}{
-  \let\option@ams=\option@false
+  \@uvaseasthesis@amsfalse
 }
 
 %% bind | nobind
+\newif\if@uvaseasthesis@bind\relax
 \DeclareOption{bind}{
-  \let\option@bind=\option@true
+  \@uvaseasthesis@bindtrue
 }
 \DeclareOption{nobind}{
-  \let\option@bind=\option@false
+  \@uvaseasthesis@bindfalse
 }
 
 %% compliantcopyright
+\newif\if@uvaseasthesis@compliantcopyright\relax
 \DeclareOption{compliantcopyright}{
-  \let\option@compliantcopyright=\option@true
+  \@uvaseasthesis@compliantcopyrighttrue
 }
 
 %% booktabs | nobooktabs
+\newif\if@uvaseasthesis@booktabs\relax
 \DeclareOption{booktabs}{
-  \let\option@booktabs=\option@true
+  \@uvaseasthesis@booktabstrue
 }
 \DeclareOption{nobooktabs}{
-  \let\option@booktabs=\option@false
+  \@uvaseasthesis@booktabsfalse
 }
 
 %% draft
+\newif\if@uvaseasthesis@draft\relax
 \DeclareOption{draft}{
-  \let\option@draft=\option@true
+  \@uvaseasthesis@drafttrue
 }
 
 %% hidefront | hideback | hidefrontback
-% NOTE: \if@mainmatter is defined by book.cls for determining if the document is
-% in its main matter (verses front or back matter).
+\newif\if@uvaseasthesis@hidefront\relax
 \DeclareOption{hidefront}{
-  \let\option@hidefront=\option@true
+  \@uvaseasthesis@hidefronttrue
 }
+\newif\if@uvaseasthesis@hideback\relax
 \DeclareOption{hideback}{
-  \let\option@hideback=\option@true
+  \@uvaseasthesis@hidebacktrue
 }
 \DeclareOption{hidefrontback}{
-  \let\option@hidefront=\option@true
-  \let\option@hidefrontback=\option@true
+  \@uvaseasthesis@hidefronttrue
+  \@uvaseasthesis@hidebacktrue
 }
+% NOTE: \if@mainmatter is defined by book.cls for determining if the document is
+% in its main matter (verses front or back matter).
 
 %% hyper
+\newif\if@uvaseasthesis@hyper\relax
 \DeclareOption{hyper}{
-  \let\option@hyper=\option@true
+  \@uvaseasthesis@hypertrue
 }
 
 %% final
+\newif\if@uvaseasthesis@final\relax
 \DeclareOption{final}{
-  \let\option@final=\option@true
+  \@uvaseasthesis@finaltrue
 }
 
+%% microtype | nomicrotype
+\newif\if@uvaseasthesis@microtype\relax
 \DeclareOption{microtype}{
-  \let\option@microtype=\option@true
+  \@uvaseasthesis@microtypetrue
 }
 \DeclareOption{nomicrotype}{
-  \let\option@microtype=\option@false
+  \@uvaseasthesis@microtypefalse
 }
 
 %% openany
+\newif\if@uvaseasthesis@openany\relax
 \DeclareOption{openany}{
-  \let\option@openany=\option@true
+  \@uvaseasthesis@openanytrue
+}
+
+%% sequential
+\newif\if@uvaseasthesis@sequential\relax
+\DeclareOption{sequential}{
+  \@uvaseasthesis@sequentialtrue
 }
 
 %% twoside
+\newif\if@uvaseasthesis@twoside\relax
 \DeclareOption{twoside}{
-  \let\option@twoside=\option@true
+  \@uvaseasthesis@twosidetrue
 }
+%% end options
 
+%% option handling
 % execute `default' options
 \ExecuteOptions{ams,booktabs,microtype,nobind}
 % process the specified options
-\ProcessOptions\relax % \relax avoids unnecessary lookahead due to * from
+%
+% \ProcessOptions executes options in the order of declaration; the starred form
+% (\ProcessOptions*) executes options in the order specified in the calling 
+% command.
+\ProcessOptions\relax % \relax avoids unnecessary lookahead due to * form
 
 % NOTE: No packages may be included before \ProcessOptions
 
 %% final
 % This final option overrides all others to create a bound version.
-\ifx \option@final\option@true
-  \let\option@bind=\option@true
-  \let\option@draft=\option@false
-  \let\option@hidefront=\option@false
-  \let\option@hideback=\option@false
-  \let\option@hyper=\option@false % disable hyper to eliminate (link) colors
-  \let\option@openany=\option@false
-  \let\option@twoside=\option@false
+\if@uvaseasthesis@final
+  \@uvaseasthesis@bindtrue
+  \@uvaseasthesis@draftfalse
+  \@uvaseasthesis@hidefrontfalse
+  \@uvaseasthesis@hidebackfalse
+  \@uvaseasthesis@hyperfalse % disable hyper to eliminate (link) colors
+  \@uvaseasthesis@openanyfalse
+  \@uvaseasthesis@twosidefalse
 \fi
 
 %% =============================================================================
@@ -145,12 +166,12 @@
 
 %% REQUIRED --------------------------------------------------------------------
 
-% Set appropriate margins. According to Form G122, the left margin must be 1.5 
-% inches and the right, top, and bottom margins all 1 inch. All text *except 
-% page numbers* should not enter the margin.
+% Set appropriate margins. According to UVa Print Services and SEAS, the left 
+% margin must be 1.5 inches and the right, top, and bottom margins all 1 inch. 
+% No text *except page numbers* should enter the margin.
 \RequirePackage[%
     inner=% toward binding (i.e. left unless twoside is specified)
-        \ifx \option@bind\option@true % only use 1.5-inch margin for bound copies
+        \if@uvaseasthesis@bind % only use 1.5-inch margin for bound copies
           1.5in %
         \else %
           1in %
@@ -158,6 +179,11 @@
     outer=1in,% away from binding
     top=1in,%
     bottom=1in,%
+    % 4 January 2011 - JC
+    % By *not* including the header and footer, it is possible to push page 
+    % numbers into the page margin (as specified by SEAS). Including additional 
+    % text (e.g., the chapter title) in the page header violates the restriction
+    % that text should not be printed in the margins.
     %includeheadfoot,% include header and footer in textheight
     asymmetric% twosided layout where margins are *not* swapped on alternate pages
   ]{geometry}
@@ -170,27 +196,28 @@
 
 %% OPTIONAL --------------------------------------------------------------------
 %% ams
-\ifx \option@ams\option@true
+\if@uvaseasthesis@ams
   \RequirePackage{amsmath}
 \fi
 
 %% booktabs
-\ifx \option@booktabs\option@true
+\if@uvaseasthesis@booktabs
   \RequirePackage{booktabs}
 \fi
 
 %% draft
-\ifx \option@draft\option@true
+\if@uvaseasthesis@draft
   \RequirePackage{type1cm} % arbitrary font size (required by draftwatermark)
   \RequirePackage{draftwatermark} % print watermark across page
   \RequirePackage[pagewise]{lineno} % line numbers (per page)
   
   % line numbers on drafts
-  \let\option@lineno=\option@true % define additional option value
+  \newif\if@uvaseasthesis@lineno % define new conditional
+  \@uvaseasthesis@linenotrue
 \fi
 
 %% hyper
-\ifx \option@hyper\option@true
+\if@uvaseasthesis@hyper
   \RequirePackage[%
       colorlinks=true,% color links instead of using boxes
       linkcolor=red,% color for internal (intra-document) links
@@ -215,7 +242,7 @@
 \fi
 
 %% microtype
-\ifx \option@microtype\option@true
+\if@uvaseasthesis@microtype
   \RequirePackage[final]{microtype}
 \fi
 
@@ -232,12 +259,12 @@
 \AtBeginDocument{\doublespacing}
 
 % draft watermark
-\ifx \option@draft\option@true
+\if@uvaseasthesis@draft
   \SetWatermarkLightness{0.9} % lighten watermark
 \fi
 
 % line numbers
-\ifx \option@lineno\option@true
+\if@uvaseasthesis@lineno
   \AtBeginDocument{\linenumbers} % number lines
 \fi
 
@@ -270,7 +297,7 @@
 \renewcommand*\author[1]{
   \global\def\@author{#1}
   % set PDF metadata
-  \ifx \option@hyper\option@true
+  \if@uvaseasthesis@hyper
     \hypersetup{pdfauthor = {\@author}}
   \fi
 }
@@ -278,7 +305,7 @@
 \renewcommand*\title[1]{
   \global\def\@title{#1}
   % set PDF metadata
-  \ifx \option@hyper\option@true
+  \if@uvaseasthesis@hyper
     \hypersetup{pdftitle = {\@title}}
   \fi
 }
@@ -294,14 +321,14 @@
 % graduation month, graduation year) has been provided
 \AtBeginDocument{%
   \ifx \graduation@degree\undefined 
-    \PackageWarning{\package@name}{%
+    \PackageWarning{\uvaseasthesis@name}{%
       missing degree, assuming Ph.D. Use \protect\degree \space in the %
       preamble to specify the degree%
     }
     \degree{Doctor of Philosophy}
   \fi
   \ifx \graduation@program\undefined 
-    \PackageError{\package@name}{%
+    \PackageError{\uvaseasthesis@name}{%
       missing field of study%
     }{
       Use \protect\program \space in the preamble to specify the field of study.%
@@ -312,7 +339,7 @@
   \fi
   
   \ifx \graduation@month\undefined
-    \PackageError{\package@name}{%
+    \PackageError{\uvaseasthesis@name}{%
       graduation month undefined%
     }{%
       Use \protect\graduationmonth \space in the preamble to specify the month %
@@ -320,7 +347,7 @@
     }
   \fi
   \ifx \graduation@year\undefined
-    \PackageError{\package@name}{%
+    \PackageError{\uvaseasthesis@name}{%
       graduation year undefined%
     }{%
       Use \protect\graduationyear \space in the preamble to specify the year %
@@ -376,7 +403,7 @@
 
 %% title page
 \renewcommand{\maketitle}{%
-  \ifx \option@lineno\option@true \nolinenumbers \fi % no line numbers
+  \if@uvaseasthesis@lineno \nolinenumbers \fi % no line numbers
   \begin{titlepage}
     \centering
     
@@ -395,7 +422,7 @@
     \@author\\
     \graduation@month\ \graduation@year\\
     
-    \ifx \option@draft\option@true
+    \if@uvaseasthesis@draft
       \vfill
       
       \hrule
@@ -407,15 +434,15 @@
   \end{titlepage}
   
   \thispagestyle{empty} % \endtitlepage => \cleardoublepage, ensure blank
-  \ifx \option@lineno\option@true \linenumbers \fi % re-enable line numbers
+  \if@uvaseasthesis@lineno \linenumbers \fi % re-enable line numbers
 }
 
 %% copyright page
 \DeclareRobustCommand{\copyrightpage}{
   \thispagestyle{empty} % no header or footer
-  \ifx \option@hidefront\option@true
+  \if@uvaseasthesis@hidefront
   \else
-    \ifx \option@lineno\option@true \nolinenumbers \fi % no line numbers
+    \if@uvaseasthesis@lineno \nolinenumbers \fi % no line numbers
     
     % 14 August 2010 - JC
     % \singlespacing interferes with \begingroup and \centering, but 
@@ -426,7 +453,7 @@
       \ \vfill
       
       % copyright block specified by UVa print services
-      \ifx \option@compliantcopyright\option@true
+      \if@uvaseasthesis@compliantcopyright
         \noindent\textcopyright\ Copyright by\\
         \@author\\
         All rights reserved\\
@@ -437,7 +464,7 @@
     \end{center}
     
     \clearpage
-    \ifx \option@lineno\option@true \linenumbers \fi % re-enable line numbers
+    \if@uvaseasthesis@lineno \linenumbers \fi % re-enable line numbers
   \fi
 }
 
@@ -449,9 +476,9 @@
     \newcommand{\signature}[2][]{}
     \newcommand{\dean}[1]{}
     
-    \ifx \option@hidefront\option@true
+    \if@uvaseasthesis@hidefront
     \else
-      \ifx \option@lineno\option@true \nolinenumbers \fi
+      \if@uvaseasthesis@lineno \nolinenumbers \fi
       \thispagestyle{plain} % page number in footer
       
       \section*{\centering\Large Approval Sheet}
@@ -473,7 +500,8 @@
       \newcommand{\signatureline}[1][]{%
         \signaturespace%
         \signatureindent%
-        \ifx \option@final\undefined %
+        \if@uvaseasthesis@final %
+        \else %
           \makebox[0em][l]{%
             \makebox[\signaturewidth][c]{%
               \raisebox{.5em}[0pt][0pt]{%
@@ -497,7 +525,7 @@
   \fi
 }
 \def\endsignatures{%
-  \ifx \option@hidefront\option@true
+  \if@uvaseasthesis@hidefront
   \else
       \singlespacing
       
@@ -511,19 +539,19 @@
     \end{center}
     
     \clearpage
-    \ifx \option@lineno\option@true \linenumbers \fi
+    \if@uvaseasthesis@lineno \linenumbers \fi
   \fi
   \endgroup
 }
 
 \DeclareRobustCommand{\dedication}[1]{%
-  \ifx \option@hidefront\option@true
+  \if@uvaseasthesis@hidefront
   \else
     \thispagestyle{plain} % page number in footer
     
     \begingroup
       \centering
-      \ifx \option@lineno\option@true \nolinenumbers \fi % no line numbers, ends at end of group
+      \if@uvaseasthesis@lineno \nolinenumbers \fi % no line numbers, ends at end of group
       
       \ \vfill
       \emph{#1}
@@ -534,6 +562,11 @@
   \fi
 }
 
+%% abstract
+%
+% 4 January 2011 - JC
+% According to UVa Print Services's dissertation checklist, the abstract must 
+% be 350 words or less. Enforcing this requirement is not possible using LaTeX.
 \newenvironment{abstract}[0]{%
   \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
   \chapter*{Abstract}%
@@ -542,6 +575,7 @@
   \chaptermark{}%
 }
 
+%% acknowledgments
 \newenvironment{acknowledgments}[0]{%
   \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
   \chapter*{Acknowledgments}%
@@ -550,6 +584,8 @@
   \chaptermark{}%
 }
 
+% tableofcontents
+%
 % Since the "standard" bibliography command uses \MakeUppercase, the simplest 
 % way to print in mixed case is by making \MakeUppercase a no-op.
 %
@@ -557,9 +593,9 @@
 % tables, list of figures, and bibliography itself.
 \let\@oldtableofcontents\tableofcontents
 \renewcommand{\tableofcontents}{%
-  \ifx \option@hidefront\option@true
+  \if@uvaseasthesis@hidefront
   \else
-    \ifx \option@hyper\option@true \phantomsection \fi
+    \if@uvaseasthesis@hyper \phantomsection \fi
     \addcontentsline{toc}{chapter}{Contents}
     
     \begin{singlespace}
@@ -570,12 +606,13 @@
   \fi
 }
 
+% listoftables
 \let\@oldlistoftables\listoftables
 \renewcommand{\listoftables}{%
-  \ifx \option@hidefront\option@true
+  \if@uvaseasthesis@hidefront
   \else
     \clearpage
-    \ifx \option@hyper\option@true \phantomsection \fi
+    \if@uvaseasthesis@hyper \phantomsection \fi
     \addcontentsline{toc}{section}{List of Tables}
     
     \begin{singlespace}
@@ -586,12 +623,13 @@
   \fi
 }
 
+% listoffigures
 \let\@oldlistoffigures\listoffigures
 \renewcommand{\listoffigures}{%
-  \ifx \option@hidefront\option@true
+  \if@uvaseasthesis@hidefront
   \else
     \clearpage
-    \ifx \option@hyper\option@true \phantomsection \fi
+    \if@uvaseasthesis@hyper \phantomsection \fi
     \addcontentsline{toc}{section}{List of Figures}
     
     \begin{singlespace}
@@ -602,13 +640,14 @@
   \fi
 }
 
+% bibliography
 \bibliographystyle{unsrt}
 
 \let\@oldbibliography\bibliography\relax
 \renewcommand{\bibliography}[1]{%
-  \ifx \option@hideback\option@true
+  \if@uvaseasthesis@hideback
   \else
-    \ifx \option@hyper\option@true \phantomsection \fi
+    \if@uvaseasthesis@hyper \phantomsection \fi
     \addcontentsline{toc}{chapter}{Bibliography}
     
     \begingroup
@@ -623,25 +662,26 @@
   \fi
 }
 
+% header / footer
 \def\ps@myheadings{%
   \def\@oddhead{\rightmark\hfill\thepage}%
   \def\@evenhead{%
-      \ifx \option@twoside\option@true %
+      \if@uvaseasthesis@twoside %
         \thepage\hfill %
       \fi %
       \leftmark %
-      \ifx \option@twoside\option@true %
+      \if@uvaseasthesis@twoside %
       \else %
         \hfill\thepage %
       \fi%
   }%
   \def\@oddfoot{%
-      \ifx \option@draft\option@true %
+      \if@uvaseasthesis@draft %
         \hfill DRAFT: \timestamp \hfill %
       \fi%
   }%
   \def\@evenfoot{%
-      \ifx \option@draft\option@true %
+      \if@uvaseasthesis@draft %
         \hfill DRAFT: \timestamp \hfill %
       \fi%
   }%
@@ -668,3 +708,22 @@
   \@oldmainmatter%
   \pagenumbering{arabic}%
 }
+
+% sequential numbering (of tables, figures, equations, etc.)
+%
+% 4 January 2010 - JC
+% Sequential numbering (throughout chapter) of equations, tables, and figures. 
+% Documentation is practically non-existent regarding LaTeX's internal handling 
+% of counters, but the following appears to work.
+\if@uvaseasthesis@sequential
+  \newcounter{sequential}[chapter]
+  
+  \let\c@equation=\c@sequential\relax
+  \let\c@figure=\c@sequential\relax
+  \let\c@table=\c@sequential\relax
+  
+  % explicitly support the listings package
+  \@ifpackageloaded{listings}{%
+    \let\c@lstnumber=\c@sequential\relax
+  }
+\fi
