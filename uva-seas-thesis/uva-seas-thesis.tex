@@ -5,7 +5,6 @@
 \usepackage{listings}
 \usepackage{longtable}
 \usepackage{mdwlist}
-\usepackage{svn-multi}
 \usepackage{url}
 \usepackage[svgnames]{xcolor}
 
@@ -25,12 +24,6 @@
   frame=single%
 }
 
-\svnidlong
-{$LastChangedBy$}
-{$LastChangedRevision$}
-{$LastChangedDate$}
-{$HeadURL$}
-
 \newcommand{\class}[1]{#1}
 \newcommand{\package}[1]{#1}
 \newcommand{\option}[1]{#1}
@@ -41,7 +34,7 @@
 
 \newcommand{\thispackage}{\package{uva-seas-thesis}}
 
-\title{\thispackage\\{\small (version 1.1.15)}}
+\title{\thispackage\\{\normalsize (version 1.1.15)}}
 \author{
   Joel Coffman\\
   \url{jcoffman@cs.virginia.edu}
@@ -236,7 +229,7 @@ When \package{hyperref} is \emph{not} loaded, this command is defined so it may 
 %-------------------------------------------------------------------------------
 \section{Release Notes}\label{section:release notes}
 The following summarizes the version history of this package:
-\begin{longtable}{r@{.}r@{.}rp{.8\linewidth}}
+\begin{longtable}{r@{.}r@{.}lp{.8\linewidth}}
   %\toprule
   \multicolumn{3}{c}{Version} & Comments\\
   \midrule
