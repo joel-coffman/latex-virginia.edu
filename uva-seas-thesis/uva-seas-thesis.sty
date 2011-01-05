@@ -41,6 +41,12 @@
 %% =============================================================================
 
 %% start options -- listed in alphabetical order
+%% alphacitations
+\newif\if@uvaseasthesis@alphacitations\relax
+\DeclareOption{alphacitations}{
+  \@uvaseasthesis@alphacitationstrue
+}
+
 %% ams | noams
 \newif\if@uvaseasthesis@ams\relax
 \DeclareOption{ams}{
@@ -59,10 +65,21 @@
   \@uvaseasthesis@bindfalse
 }
 
+%% compliant
+\DeclareOption{compliant}{
+  \@uvaseasthesis@compliantcopyrighttrue
+}
+
 %% compliantcopyright
 \newif\if@uvaseasthesis@compliantcopyright\relax
 \DeclareOption{compliantcopyright}{
   \@uvaseasthesis@compliantcopyrighttrue
+}
+
+%% compliantmargins
+\newif\if@uvaseasthesis@compliantmargins\relax
+\DeclareOption{compliantmargins}{
+  \@uvaseasthesis@compliantmarginstrue
 }
 
 %% booktabs | nobooktabs
@@ -438,6 +455,19 @@
 }
 
 %% copyright page
+\DeclareRobustCommand{\copyright}{
+  \if@uvaseasthesis@compliantcopyright
+    % copyright notice specified by UVa print services
+    \noindent
+    \textcopyright\ Copyright by\\
+    \@author\\
+    All rights reserved\\
+    \graduation@monrth\ \graduation@year
+  \else
+    % copyright notice specified by U.S. copyright office
+    \textcopyright\ \graduation@year\ \@author
+  \fi
+}
 \DeclareRobustCommand{\copyrightpage}{
   \thispagestyle{empty} % no header or footer
   \if@uvaseasthesis@hidefront
@@ -452,15 +482,7 @@
       
       \ \vfill
       
-      % copyright block specified by UVa print services
-      \if@uvaseasthesis@compliantcopyright
-        \noindent\textcopyright\ Copyright by\\
-        \@author\\
-        All rights reserved\\
-        \graduation@month\ \graduation@year\\
-      \else % more traditional copyright notice
-        \textcopyright\ \graduation@year\ by \@author
-      \fi
+      \copyright
     \end{center}
     
     \clearpage
@@ -641,7 +663,13 @@
 }
 
 % bibliography
-\bibliographystyle{unsrt}
+\bibliographystyle{%
+  \if@uvaseasthesis@alphacitations%
+    alpha%
+  \else%
+    unsrt%
+  \fi%
+}
 
 \let\@oldbibliography\bibliography\relax
 \renewcommand{\bibliography}[1]{%
@@ -664,7 +692,9 @@
 
 % header / footer
 \def\ps@myheadings{%
+  % HEADER of ODD numbered pages
   \def\@oddhead{\rightmark\hfill\thepage}%
+  % HEADER of EVEN numbered pages
   \def\@evenhead{%
       \if@uvaseasthesis@twoside %
         \thepage\hfill %
@@ -675,11 +705,13 @@
         \hfill\thepage %
       \fi%
   }%
+  % FOOTER of ODD numbered pages
   \def\@oddfoot{%
       \if@uvaseasthesis@draft %
         \hfill DRAFT: \timestamp \hfill %
       \fi%
   }%
+  % FOOTER of EVEN numbered pages
   \def\@evenfoot{%
       \if@uvaseasthesis@draft %
         \hfill DRAFT: \timestamp \hfill %
@@ -689,10 +721,25 @@
 \pagestyle{myheadings}
 
 \renewcommand{\chaptermark}[1]{%
-  \markboth{Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1}{Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1}
+  \markboth{% LEFT head(er)
+    \if@uvaseasthesis@compliantmargins%
+    \else%
+      Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
+    \fi
+  }{% RIGHT head(er)
+    \if@uvaseasthesis@compliantmargins%
+    \else%
+      Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
+    \fi%
+  }%
 }
-\renewcommand{\sectionmark}[1]{
-  \markright{\thesection\hspace{1em}\vrule\hspace{1em}#1}
+\renewcommand{\sectionmark}[1]{%
+  \markright{%
+    \if@uvaseasthesis@compliantmargins%
+    \else% RIGHT head(er)
+      \thesection\hspace{1em}\vrule\hspace{1em}#1
+    \fi%
+  }%
 }
 
 \pagenumbering{alph}
@@ -708,6 +755,19 @@
   \@oldmainmatter%
   \pagenumbering{arabic}%
 }
+
+% 5 January 2011 - JC
+% LaTeX is most uncooperative with regards to redefining the chapter command. 
+% While it is possible to backport some hacks from the book class, a portable 
+% (i.e., robust to different classes) solution appears out of reach.
+%
+% The fancyhdr package may provide an alternate workaround, but an alternative 
+% redefines the plain page style (ps@plain) as the myheadings page style 
+% (ps@myheadings). Hence, when LaTeX calls \thispagestyle(plain) at the start of
+% parts, chapters, etc., the myheadings page style will actually be used.
+\if@uvaseasthesis@compliantmargins
+  \let\ps@plain=\ps@myheadings\relax
+\fi
 
 % sequential numbering (of tables, figures, equations, etc.)
 %

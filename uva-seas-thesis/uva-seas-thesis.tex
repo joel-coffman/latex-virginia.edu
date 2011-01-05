@@ -2,7 +2,7 @@
 
 \usepackage{booktabs}
 \usepackage[acronym]{glossaries}
-\usepackage{listings}
+\usepackage[final]{listings}
 \usepackage{longtable}
 \usepackage{mdwlist}
 \usepackage{url}
@@ -84,6 +84,9 @@ The package options and the packages they load are listed below.
 This section describes all the options provided by \thispackage.
 Default values for options are denoted by \default{italics}.
 
+\subsection{\option{alphacitations}}
+
+
 \subsection{\default{\option{ams}} \textbar\ \option{noams}}
 Loads the \package{amsmath} package to improve the typesetting of mathematical formulas.
 
@@ -94,9 +97,15 @@ The bind option increases the size of the inner (i.e., left, unless \option{twos
 \subsection{\default{\option{booktabs}} \textbar\ \option{nobooktabs}}
 Loads the \package{booktabs} package to enhance the quality of tables.
 
+\subsection{\option{compliant}}
+
+
 \subsection{\option{compliantcopyright}}
-Creates the copyright notice stipulated by the University of Virginia print services.
+Creates the copyright notice stipulated by the \gls{UVa} print services~\cite{uvaprint:thesis}.
 Without this option, a more traditional copyright notification is used.
+
+\subsection{\option{complaintmargins}}
+
 
 \subsection{\option{draft}}
 Prints ``DRAFT" diagonally across the page and adds line numbers in the margin of each page.
@@ -198,7 +207,7 @@ Specifies the name of the dean of the School of Engineering and Applied Science.
 
 \subsection{\environment{abstract}}
 Defines an abstract environment (not part of the traditional \LaTeX\ book class) for the document's abstract.
-\Gls{UVa} Print Services~\cite{uvaprint2001thesis} specifies that the abstract must be 350 words or less;
+\Gls{UVa} Print Services~\cite{uvaprint:thesis} specifies that the abstract must be 350 words or less;
 the length limit is \emph{not} enforced by this package (it may not even be possible to enforce using \LaTeX).
 
 \begin{lstlisting}[gobble=2]
@@ -246,11 +255,11 @@ The following is a list of all known inconsistencies between this package and th
 If you find additional deviations, please email \url{jcoffman@cs.virginia.edu}.
 
 \paragraph{Font size}
-\Gls{SEAS}~\cite{seas2008instructions} mandates a standard typeface with 10 or 12 characters per inch.
+\Gls{SEAS}~\cite{seas:instructions} mandates a standard typeface with 10 or 12 characters per inch.
 This package does not currently enforce this requirement---it is left to the author to choose a font face and size that adheres to this specification.
 
 \paragraph{Page order}
-The suggested page order~\cite{uvaprint2001thesis, seas2008instructions} is as follows:
+The suggested page order~\cite{uvaprint:thesis, seas:instructions} is as follows:
 \begin{itemize*}
   \item Thesis
   \begin{itemize*}
@@ -271,39 +280,48 @@ The suggested page order~\cite{uvaprint2001thesis, seas2008instructions} is as f
 \end{itemize*}
 This package does not enforce this suggested page ordering.
 
-Please be aware that \gls{SEAS}~\cite{seas2008instructions} is actually inconsistent regarding the page order.
+Please be aware that \gls{SEAS}~\cite{seas:instructions} is actually inconsistent regarding the page order.
 Elsewhere it is stated that the title page should be immediately followed by the approval (signatures) page and the abstract.
 
-In addition, \gls{SEAS}~\cite{seas2008instructions} mandates that a list of symbols follow the list of figures.
+In addition, \gls{SEAS}~\cite{seas:instructions} mandates that a list of symbols follow the list of figures.
 In the example document (Section~\ref{section:example}), it is assumed that the list of tables precedes the list of figures, but this order is not specified.
 This package will not automatically produce a list of symbols; the \package{glossaries} package provides one way to create such a list.
 Please note that \gls{SEAS} also requires the symbols to appear in alphabetical order with Arabic symbols followed by Greek symbols.
 
 \paragraph{Page numbers}
-Page numbers should appear in the upper-right corner of pages~\cite{uvaprint2001thesis, seas2008instructions}.
+Page numbers should appear in the upper-right corner of pages~\cite{uvaprint:thesis} in the page margin~\cite{seas:instructions}.
 While this policy is followed in general, page numbers appear at the bottom of pages which start a new chapter.
 (This deviation is consistent with many other publications.)
 
 \paragraph{Header and Footer}
-\Gls{SEAS}~\cite{seas2008instructions} requires page numbers to appear in the page margin and all other text to be kept within the page's margins.
+\Gls{SEAS}~\cite{seas:instructions} requires page numbers to be in the page margin and all other text to be kept within the page's margins.
 This requirement is satisfied by \emph{not} including the page header and footer in the page's text area.
 Including chapter headers (e.g., the name of the chapter) in the header technically violates \gls{SEAS}['s] requirements.
 
 \paragraph{Title and Signatures pages}
-Please note that this package takes minor liberties with regards to the example title and signatures pages provided by \Gls{SEAS}~\cite{seas2008instructions}.
+Please note that this package takes minor liberties with regards to the example title and signatures pages provided by \Gls{SEAS}~\cite{seas:instructions}.
 Although the example is not reproduced perfectly, the deviations are minor.
 
+\paragraph{Copyright notice}
+The copyright notice described by \gls{UVa} print services~\cite{uvaprint:thesis} and \gls{SEAS}~\cite{seas:instructions} is not consistent with the notice of copyright prescribed by the U.S.\ copyright office~\cite{copyright2010copyright}.
+The form given by the U.S.\ copyright office is used unless the \option{compliantcopyright} option is passed to the package.
+
 \paragraph{Abstract}
-Both \Gls{UVa} Print Services~\cite{uvaprint2001thesis} and \gls{SEAS}~\cite{seas2008instructions} specify that the abstract must be 350 words or less.\footnote{
+Both \Gls{UVa} Print Services~\cite{uvaprint:thesis} and \gls{SEAS}~\cite{seas:instructions} specify that the abstract must be 350 words or less.\footnote{
   Elsewhere, \gls{SEAS} states that the abstract must not exceed 600 words.
 }
 This requirement is not enforced by this package as it's unclear that \LaTeX\ even has facilities for obtaining accurate word counts.
 
 \paragraph{Figures}
-\Gls{SEAS}~\cite{seas2008instructions} requires each figure to follow its text reference as closely as possible.
+\Gls{SEAS}~\cite{seas:instructions} requires each figure to follow its text reference as closely as possible.
 Figures (and presumably other floats) should \emph{not} appear at the end of the thesis (e.g., as a ``page of floats'').
 In addition, figures should be centered within the page margins.
 None of these requirements are enforced by this package.
+
+\paragraph{References}
+References are to be numbered consecutively throughout the work~\cite{seas:instructions}.
+By default, the unsrt bibliography style is applied to provide this numbering.
+Please note that this package will not prevent the specification of a different bibliography style that does not meet \gls{SEAS}['s] requirements. 
 
 %-------------------------------------------------------------------------------
 \bibliographystyle{abbrv}
