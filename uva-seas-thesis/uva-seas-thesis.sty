@@ -93,6 +93,7 @@
 
 %% draft
 \newif\if@uvaseasthesis@draft\relax
+\newif\if@uvaseasthesis@lineno\relax
 \DeclareOption{draft}{
   \@uvaseasthesis@drafttrue
 }
@@ -229,7 +230,6 @@
   \RequirePackage[pagewise]{lineno} % line numbers (per page)
   
   % line numbers on drafts
-  \newif\if@uvaseasthesis@lineno % define new conditional
   \@uvaseasthesis@linenotrue
 \fi
 
