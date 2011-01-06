@@ -1,5 +1,8 @@
 \documentclass[10pt,letterpaper,openany]{book}
-\usepackage[hyper,nobind]{uva-seas-thesis}
+\usepackage[hyper,nobind]{../uva-seas-thesis}
+
+\usepackage{graphicx,epstopdf}
+\usepackage[graphics]{svn-multi}
 
 \author{John Doe}
 \title{A Conceptual Object-Oriented Interface\\ for an Integrated Logical Toolkit}
@@ -9,9 +12,20 @@
 \documenttype{dissertation}
 
 \graduationmonth{May}
-\graduationyear{2096}
+\graduationyear{1985}
 
 \begin{document}
+
+\svnid{$Id$}
+\begin{tabular}{ll}
+  \toprule
+  \multicolumn{2}{c}{Revision information}\\
+  \midrule
+  Number & \svnrev\\
+  Author & \svnauthor\\
+  Date & \svndate\\
+  \bottomrule
+\end{tabular}
 
 \maketitle
 \copyrightpage
@@ -32,9 +46,7 @@
 
 \dedication{To everyone who's helped me succeed}
 
-\begin{acknowledgments}
-  To everyone who's worthy of thanking, ...
-\end{acknowledgments}
+\include{chapters/acknowledgments}
 
 \tableofcontents
 \listoftables
