@@ -147,6 +147,11 @@
   \@uvaseasthesis@sequentialtrue
 }
 
+\newif\if@uvaseasthesis@svn\relax
+\DeclareOption{svn}{
+  \@uvaseasthesis@svntrue
+}
+
 %% twoside
 \newif\if@uvaseasthesis@twoside\relax
 \DeclareOption{twoside}{
@@ -231,6 +236,15 @@
   
   % line numbers on drafts
   \@uvaseasthesis@linenotrue
+  
+  %
+  \def\uvaseasthesis@draftnotice{%
+    DRAFT: %
+    Compiled \timestamp%
+    \if@uvaseasthesis@svn%
+      , revision \svnrev (\svndate)
+    \fi%
+  }
 \fi
 
 %% hyper
@@ -277,7 +291,7 @@
 
 % draft watermark
 \if@uvaseasthesis@draft
-  \SetWatermarkLightness{0.9} % lighten watermark
+  \SetWatermarkLightness{0.9} % lighten watermark, 90% white
 \fi
 
 % line numbers
@@ -444,7 +458,7 @@
       
       \hrule
       \begin{center}
-        DRAFT: \timestamp
+        \uvaseasthesis@draftnotice
       \end{center}
       \hrule
     \fi
@@ -708,13 +722,13 @@
   % FOOTER of ODD numbered pages
   \def\@oddfoot{%
       \if@uvaseasthesis@draft %
-        \hfill DRAFT: \timestamp \hfill %
+        \hfill \uvaseasthesis@draftnotice \hfill %
       \fi%
   }%
   % FOOTER of EVEN numbered pages
   \def\@evenfoot{%
       \if@uvaseasthesis@draft %
-        \hfill DRAFT: \timestamp \hfill %
+        \hfill \uvaseasthesis@draftnotice \hfill %
       \fi%
   }%
 }
