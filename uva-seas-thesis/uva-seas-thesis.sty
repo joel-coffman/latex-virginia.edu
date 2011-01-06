@@ -240,12 +240,16 @@
   
   %
   \def\uvaseasthesis@draftnotice{%
-    DRAFT: %
-    Compiled \timestamp%
-    \if@uvaseasthesis@svn%
+    DRAFT: 
+    Compiled \timestamp
+    \if@uvaseasthesis@svn
       \ (from revision \svnrev)
-    \fi%
+    \fi
   }
+  
+  \if@uvaseasthesis@svn
+    \AtEndDocument{\tableofrevisions}
+  \fi
 \fi
 
 %% hyper
