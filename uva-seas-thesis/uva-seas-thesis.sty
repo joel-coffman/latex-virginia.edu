@@ -4,14 +4,14 @@
 %% Author: Joel Coffman <jcoffman@cs.virginia.edu>
 
 \def\uvaseasthesis@name{uva-seas-thesis}
-\def\uvaseasthesis@version{1.1.15}
-\def\uvaseasthesis@modified{2011/01/04} % YYYY/MM/DD (required)
+\def\uvaseasthesis@version{1.1.27}
+\def\uvaseasthesis@modified{2011/01/07} % YYYY/MM/DD (required)
 
 %% =============================================================================
 %% CHANGE LOG
 %% =============================================================================
 %% 0.9.0
-%% - Initial version
+%% - Initial version (copied from personal thesis style file)
 %% 1.0.3
 %% - Readability rewrite
 %% - Improved handling of front matter constructs (e.g., signatures page)
@@ -26,11 +26,29 @@
 %% - Fixed bug where the acknowledgements (and probably abstract) were numbered
 %% - Option for sequential numbering of equations, tables, and figures
 %% - Rewrote internals to use newif for option handling
+%% 1.2.27
+%% - File reorganization
+%% - Fixed bug where conditional was not declared unless draft option specified
+%% - Added support for references by author name(s) and date of publication 
+%%   (via the alphacitations package option)
+%% - Added compliant option to make this package follow the published formatting
+%%   guidelines as closely as possible
+%% - Added compliantmargins option to force pages to always be numbered in the 
+%%   upper-right corner (and remove all other text from the page margin)
+%% - Figures and tables automatically centered (with top, bottom, and here) as 
+%%   default placement options
+%% - Added copyright command to allow users to modify the copyright notice
+%% - Added electronic and print options to automatically set options for final 
+%%   versions of thesis
+%% - Fixed (potential) bug where quotation environment had too much space before
+%%   and after quoted text
 %% =============================================================================
 
-% no idea if the date is correct or not; not even certain how to test on an old 
-% version...
-\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+% 7 January 2011 - JC
+% no idea what features of the LaTeX kernel are used by this package (for 
+% specifying a release date); not even sure how to test on an old (e.g., ~ 1995)
+% distribution
+\NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{\uvaseasthesis@name}[%
     \uvaseasthesis@modified\ UVa SEAS Thesis package by Joel Coffman %
     (v. \uvaseasthesis@version)%
@@ -98,6 +116,12 @@
   \@uvaseasthesis@drafttrue
 }
 
+%% electronic
+\newif\if@uvaseasthesis@electronic\relax
+\DeclareOption{electronic}{
+  \@uvaseasthesis@electronictrue
+}
+
 %% hidefront | hideback | hidefrontback
 \newif\if@uvaseasthesis@hidefront\relax
 \DeclareOption{hidefront}{
@@ -141,16 +165,16 @@
   \@uvaseasthesis@openanytrue
 }
 
+%% print
+\newif\if@uvaseasthesis@print\relax
+\DeclareOption{print}{
+  \@uvaseasthesis@printtrue
+}
+
 %% sequential
 \newif\if@uvaseasthesis@sequential\relax
 \DeclareOption{sequential}{
   \@uvaseasthesis@sequentialtrue
-}
-
-%% svn
-\newif\if@uvaseasthesis@svn\relax
-\DeclareOption{svn}{
-  \@uvaseasthesis@svntrue
 }
 
 %% twoside
@@ -169,11 +193,13 @@
 % (\ProcessOptions*) executes options in the order specified in the calling 
 % command.
 \ProcessOptions\relax % \relax avoids unnecessary lookahead due to * form
-
-% NOTE: No packages may be included before \ProcessOptions
+% NOTE: no packages may be included before \ProcessOptions
 
 %% final
 % This final option overrides all others to create a bound version.
+%
+% 7 January 2011 - JC
+% TODO reorganize so final appears last (so it will be executed last)
 \if@uvaseasthesis@final
   \@uvaseasthesis@bindtrue
   \@uvaseasthesis@draftfalse
@@ -194,7 +220,7 @@
 % margin must be 1.5 inches and the right, top, and bottom margins all 1 inch. 
 % No text *except page numbers* should enter the margin.
 \RequirePackage[%
-    inner=% toward binding (i.e. left unless twoside is specified)
+    inner=% toward binding (i.e. left unless twoside option is specified)
         \if@uvaseasthesis@bind % only use 1.5-inch margin for bound copies
           1.5in %
         \else %
@@ -234,22 +260,6 @@
   \RequirePackage{type1cm} % arbitrary font size (required by draftwatermark)
   \RequirePackage{draftwatermark} % print watermark across page
   \RequirePackage[pagewise]{lineno} % line numbers (per page)
-  
-  % line numbers on drafts
-  \@uvaseasthesis@linenotrue
-  
-  %
-  \def\uvaseasthesis@draftnotice{%
-    DRAFT: 
-    Compiled \timestamp
-    \if@uvaseasthesis@svn
-      \ (from revision \svnrev)
-    \fi
-  }
-  
-  \if@uvaseasthesis@svn
-    \AtEndDocument{\tableofrevisions}
-  \fi
 \fi
 
 %% hyper
@@ -259,14 +269,14 @@
       linkcolor=red,% color for internal (intra-document) links
       citecolor=green,% color for bibliographic links
       urlcolor=blue,% color for URL links
-      hyperfootnotes=false,% disable links to footnotes (because feature is broken)
+      hyperfootnotes=false,% disable links to footnotes (because feature broken)
       hyperindex,% make page numbers in index into hyperlinks
       %implicit=false,% don't redefine LaTeX internals (e.g., \label)
       pdfstartview={FitH},% startup page view: fit width of page to window
       bookmarks
-  ]{hyperref}%pdfborder={0 0 0}
+  ]{hyperref}
   
-  % fix problem with hyperref that hyperlinks *below* the caption of floats
+  % fix problem with hyperref that hyperlinks jump *below* the caption of floats
   \RequirePackage[all]{hypcap}%
 \else
   % hyperref cannot handle fragile commands in moving references (e.g., chapter 
@@ -282,11 +292,6 @@
   \RequirePackage{microtype}
 \fi
 
-%% svn
-\if@uvaseasthesis@svn
-  \RequirePackage[graphics,subgroups,table]{svn-multi}
-\fi
-
 %% =============================================================================
 %% CONFIGURATION
 %% =============================================================================
@@ -296,82 +301,45 @@
 % widow (i.e., page break immediately before last line of paragraph) penalty
 \widowpenalty=10000 % infinite -- no widows
 
-% double space the complete document
-\AtBeginDocument{\doublespacing}
-
 % draft watermark
 \if@uvaseasthesis@draft
   \SetWatermarkLightness{0.9} % lighten watermark, 90% white
+  
+  % line numbers on drafts
+  \@uvaseasthesis@linenotrue
+  
+  \newcommand{\draftnotice}{%
+    DRAFT: 
+    Compiled \timestamp
+  }
 \fi
 
-% line numbers
-\if@uvaseasthesis@lineno
-  \AtBeginDocument{\linenumbers} % number lines
-\fi
-
+%% =============================================================================
+%% HOOKS
 %% =============================================================================
 
-% Counter bug for spacing quotes -- too much whitespace is currently inserted 
-% (a blank (doublespaced) line before and after the quote environment).
-%
-% NOTE that the given code assumes doublespacing is active! Testing the current
-% spacing using a macro would be a better solution than hardcoding the value.
-\let\oldquote=\quote
-\let\endoldquote=\endquote
-\renewenvironment{quote}{%
-  \vspace{-.5\baselineskip}%
-  \begin{oldquote}%
-}{%
-  \end{oldquote}%
-  \vspace{-.5\baselineskip}%
-}
-
-%% =============================================================================
-%% COMMANDS / ENVIRONMENTS
-%% =============================================================================
-
-% NOTE: The starred version of newcommand (and its derivatives) denote commands 
-% that will not accept paragraph breaks (e.g., two blank lines raise an 
-% immediate error).
-
-% redefine \author to set PDF metadata (if appropriate)
-\renewcommand*\author[1]{
-  \global\def\@author{#1}
-  % set PDF metadata
-  \if@uvaseasthesis@hyper
-    \hypersetup{pdfauthor = {\@author}}
-  \fi
-}
-% redefine \title to set PDF metadata (if appropriate)
-\renewcommand*\title[1]{
-  \global\def\@title{#1}
-  % set PDF metadata
-  \if@uvaseasthesis@hyper
-    \hypersetup{pdftitle = {\@title}}
-  \fi
-}
-
-\newcommand*\degree[1]{\def\graduation@degree{#1}}
-\newcommand*\program[1]{\def\graduation@program{#1}}
-\newcommand*\documenttype[1]{\def\document@type{#1}}
-
-\newcommand*\graduationmonth[1]{\def\graduation@month{#1}}
-\newcommand*\graduationyear[1]{\def\graduation@year{#1}}
-
-% ensure all required information (degree, department (aka "field of study"),
-% graduation month, graduation year) has been provided
+%% document start
 \AtBeginDocument{%
-  \ifx \graduation@degree\undefined 
+  \if@uvaseasthesis@lineno
+    \linenumbers % number lines
+  \fi
+  
+  
+  % ensure all required information (degree, department (aka "field of study"),
+  % graduation month, graduation year) has been provided
+  
+  % if degree is not defined 
+  \ifx \graduation@degree\undefined %
     \PackageWarning{\uvaseasthesis@name}{%
       missing degree, assuming Ph.D. Use \protect\degree \space in the %
       preamble to specify the degree%
-    }
-    \degree{Doctor of Philosophy}
-  \fi
+    }%
+    \degree{Doctor of Philosophy}%
+  \fi%
   \ifx \graduation@program\undefined 
     \PackageError{\uvaseasthesis@name}{%
       missing field of study%
-    }{
+    }{%
       Use \protect\program \space in the preamble to specify the field of study.%
     }
   \fi
@@ -397,10 +365,242 @@
   \fi
 }
 
-\newlength{\hlineheight}
-\setlength{\hlineheight}{1pt}
+%% document end
 
-\def\longmonth{Month}
+
+%% =============================================================================
+%% COMPATIBILITY / BUG FIXES (for other packages)
+%% =============================================================================
+
+% Counter bug for spacing quotes -- too much whitespace is currently inserted 
+% (a blank (doublespaced) line before and after the quote environment).
+%
+% NOTE that the given code assumes doublespacing is active! Testing the current
+% spacing using a macro would be a better solution than hardcoding the value.
+\let\oldquote=\quote\relax
+\let\endoldquote=\endquote\relax
+\renewenvironment{quote}{%
+  \vspace{-.5\baselineskip}%
+  \begin{oldquote}%
+}{%
+  \end{oldquote}%
+  \vspace{-.5\baselineskip}%
+}
+
+% 7 January 2011 - JC
+% Do the same for the quotation environment (see above).
+\let\oldquotation=\quotation\relax
+\let\endoldquotation=\endquotation\relax
+\renewenvironment{quotation}{%
+  \vspace{-.5\baselineskip}%
+  \begin{oldquotation}%
+}{%
+  \end{oldquotation}%
+  \vspace{-.5\baselineskip}%
+}
+
+%% =============================================================================
+%% COMMANDS / ENVIRONMENTS
+%% =============================================================================
+
+%% RENEWED COMMANDS / ENVIRONMENTS ---------------------------------------------
+
+% NOTE: The starred version of newcommand (and its derivatives) denote commands 
+% that will not accept paragraph breaks (e.g., two blank lines raise an 
+% immediate error).
+
+% redefine \author to set PDF metadata (if appropriate)
+\renewcommand*\author[1]{
+  \global\def\@author{#1}
+  % set PDF metadata
+  \if@uvaseasthesis@hyper
+    \hypersetup{pdfauthor = {\@author}}
+  \fi
+}
+% redefine \title to set PDF metadata (if appropriate)
+\renewcommand*\title[1]{
+  \global\def\@title{#1}
+  % set PDF metadata
+  \if@uvaseasthesis@hyper
+    \hypersetup{pdftitle = {\@title}}
+  \fi
+}
+
+% 6 January 2011 - JC
+% Center figures by default (as required by SEAS) and set the default placement 
+% avoid pages of floats.
+\let\oldfigure=\figure\relax
+\let\endoldfigure=\endfigure\relax
+\renewenvironment{figure}[1][tbh]{%
+  \begin{oldfigure}[#1]%
+    \centering%
+}{%
+  \end{oldfigure}%
+}
+
+% 6 January 2011 - JC
+% By extension, also center tables (see above).
+\let\oldtable=\table\relax
+\let\endoldtable=\endtable\relax
+\renewenvironment{table}[1][tbh]{%
+  \begin{oldtable}[#1]%
+    \centering%
+}{%
+  \end{oldtable}%
+}
+
+% tableofcontents
+%
+% Since the "standard" bibliography command uses \MakeUppercase, the simplest 
+% way to print in mixed case is by making \MakeUppercase a no-op.
+%
+% Note that this redefinition is repeated for the table of contents, list of 
+% tables, list of figures, and bibliography itself.
+\let\@oldtableofcontents\tableofcontents
+\renewcommand{\tableofcontents}{%
+  \if@uvaseasthesis@hidefront
+  \else
+    \if@uvaseasthesis@hyper \phantomsection \fi
+    \addcontentsline{toc}{chapter}{Contents}
+    
+    \begin{singlespace}
+      \renewcommand{\MakeUppercase}[1]{##1}
+      
+      \@oldtableofcontents
+    \end{singlespace}
+  \fi
+}
+
+%% listoftables
+\let\@oldlistoftables\listoftables
+\renewcommand{\listoftables}{%
+  \if@uvaseasthesis@hidefront
+  \else
+    \clearpage
+    \if@uvaseasthesis@hyper \phantomsection \fi
+    \addcontentsline{toc}{section}{List of Tables}
+    
+    \begin{singlespace}
+      \renewcommand{\MakeUppercase}[1]{##1}
+      
+      \@oldlistoftables
+    \end{singlespace}
+  \fi
+}
+
+%% listoffigures
+\let\@oldlistoffigures\listoffigures
+\renewcommand{\listoffigures}{%
+  \if@uvaseasthesis@hidefront
+  \else
+    \clearpage
+    \if@uvaseasthesis@hyper \phantomsection \fi
+    \addcontentsline{toc}{section}{List of Figures}
+    
+    \begin{singlespace}
+      \renewcommand{\MakeUppercase}[1]{##1}
+      
+      \@oldlistoffigures
+    \end{singlespace}
+  \fi
+}
+
+%% bibliography
+\let\@oldbibliography\bibliography\relax
+\renewcommand{\bibliography}[1]{%
+  \if@uvaseasthesis@hideback
+  \else
+    \if@uvaseasthesis@hyper \phantomsection \fi
+    \addcontentsline{toc}{chapter}{Bibliography}
+    
+    \begingroup
+      \raggedright
+      \singlespacing
+      
+      \setlength{\parskip}{\baselineskip}
+      
+      \renewcommand{\MakeUppercase}[1]{##1}
+      \@oldbibliography{#1}
+    \endgroup
+  \fi
+}
+
+%% header / footer
+%
+% 7 January 2011 - JC
+% ps@myheadings should already be defined, \def will simply overwrite (without 
+% warning) the existing definition.
+\def\ps@myheadings{%
+  % HEADER of ODD numbered pages
+  \def\@oddhead{\rightmark\hfill\thepage}%
+  % HEADER of EVEN numbered pages
+  \def\@evenhead{%
+      \if@uvaseasthesis@twoside %
+        \thepage\hfill %
+      \fi %
+      \leftmark %
+      \if@uvaseasthesis@twoside %
+      \else %
+        \hfill\thepage %
+      \fi%
+  }%
+  % FOOTER of ODD numbered pages
+  \def\@oddfoot{%
+      \if@uvaseasthesis@draft %
+        \hfill \draftnotice \hfill %
+      \fi%
+  }%
+  % FOOTER of EVEN numbered pages
+  \def\@evenfoot{%
+      \if@uvaseasthesis@draft %
+        \hfill \draftnotice \hfill %
+      \fi%
+  }%
+}
+
+%% chaptermark
+\renewcommand{\chaptermark}[1]{%
+  \markboth{% LEFT head(er)
+    \if@uvaseasthesis@compliantmargins%
+    \else%
+      Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
+    \fi
+  }{% RIGHT head(er)
+    \if@uvaseasthesis@compliantmargins%
+    \else%
+      Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
+    \fi%
+  }%
+}
+
+%% sectionmark
+\renewcommand{\sectionmark}[1]{%
+  \markright{%
+    \if@uvaseasthesis@compliantmargins%
+    \else% RIGHT head(er)
+      \thesection\hspace{1em}\vrule\hspace{1em}#1
+    \fi%
+  }%
+}
+
+%% frontmatter
+\let\@oldfrontmatter\frontmatter\relax
+\renewcommand{\frontmatter}{%
+  \@oldfrontmatter%
+  \pagenumbering{roman}%
+}
+
+%% mainmatter
+\let\@oldmainmatter\mainmatter\relax
+\renewcommand{\mainmatter}{%
+  \@oldmainmatter%
+  \pagenumbering{arabic}%
+}
+
+% MACROS FOR (INTERNAL) PACKAGE USE --------------------------------------------
+
+% \longmonth => name of month (in text)
+\def\longmonth{[Month]}
 \ifcase\month
   \or\def\longmonth{January}
   \or\def\longmonth{February}
@@ -415,6 +615,8 @@
   \or\def\longmonth{November}
   \or\def\longmonth{December}
 \fi
+% \formatteddate => ``Day Month Year'' date style
+% edef => expand macro immediately
 \edef\formatteddate{\number\day\ \longmonth\ \number\year}
 \def\today{\formatteddate}
 
@@ -438,11 +640,27 @@
 %  \def\meridiem{pm}\relax
 %\fi
 
+% \formattedtime => HH:MM
 \edef\formattedtime{\hour:\minute}
 
+% \timestamp => ``YYYY-MM-DD HH:MM'' date/time style
 \edef\timestamp{%
   \the\year-\ifnum\month<10 0\fi\the\month-\ifnum\day<10 0\fi\the\day\ \hour:\minute
 }
+
+% NEW COMMANDS / ENVIRONMENTS --------------------------------------------------
+
+\newcommand*\degree[1]{\def\graduation@degree{#1}}
+\newcommand*\program[1]{\def\graduation@program{#1}}
+\newcommand*\documenttype[1]{\def\document@type{#1}}
+
+\newcommand*\graduationmonth[1]{\def\graduation@month{#1}}
+\newcommand*\graduationyear[1]{\def\graduation@year{#1}}
+
+% 7 January 2011 - JC
+% Keep this length internal to the package (via the `@' in its name).
+\newlength{\uvaseasthesis@hlineheight}
+\setlength{\uvaseasthesis@hlineheight}{1pt}
 
 %% title page
 \renewcommand{\maketitle}{%
@@ -452,12 +670,12 @@
     
     \vspace*{.5in} % `*' prevents the space from being removed
     \textbf{\Large \@title}\\
-    \rule{\textwidth}{\hlineheight}
+    \rule{\textwidth}{\uvaseasthesis@hlineheight}
     A \xmakefirstuc{\document@type}\\
     Presented to\\
     the Faculty of the School of Engineering and Applied Science\\
     University of Virginia\\
-    \rule{\textwidth}{\hlineheight}
+    \rule{\textwidth}{\uvaseasthesis@hlineheight}
     In Partial Fulfillment\\
     of the requirements for the Degree\\
     \graduation@degree\ (\graduation@program)\\[4ex]
@@ -470,7 +688,7 @@
       
       \hrule
       \begin{center}
-        \uvaseasthesis@draftnotice
+        \draftnotice
       \end{center}
       \hrule
     \fi
@@ -481,7 +699,7 @@
 }
 
 %% copyright page
-\DeclareRobustCommand{\copyright}{
+\DeclareRobustCommand{\uvaseasthesis@copyright}{
   \if@uvaseasthesis@compliantcopyright
     % copyright notice specified by UVa print services
     \noindent
@@ -508,7 +726,7 @@
       
       \ \vfill
       
-      \copyright
+      \uvaseasthesis@copyright
     \end{center}
     
     \clearpage
@@ -526,7 +744,7 @@
     
     \if@uvaseasthesis@hidefront
     \else
-      \if@uvaseasthesis@lineno \nolinenumbers \fi
+      \if@uvaseasthesis@lineno \nolinenumbers \fi % no line numbers
       \thispagestyle{plain} % page number in footer
       
       \section*{\centering\Large Approval Sheet}
@@ -558,7 +776,7 @@
             }%
           }%
         \fi%
-        \rule{\signaturewidth}{\hlineheight}
+        \rule{\signaturewidth}{\uvaseasthesis@hlineheight}
       }
       
       \renewcommand{\signature}[2][]{\signatureline[##1]\signatureindent##2}
@@ -587,11 +805,12 @@
     \end{center}
     
     \clearpage
-    \if@uvaseasthesis@lineno \linenumbers \fi
+    \if@uvaseasthesis@lineno \linenumbers \fi % re-enable line numbers
   \fi
   \endgroup
 }
 
+%% dedication
 \DeclareRobustCommand{\dedication}[1]{%
   \if@uvaseasthesis@hidefront
   \else
@@ -614,7 +833,8 @@
 %
 % 4 January 2011 - JC
 % According to UVa Print Services's dissertation checklist, the abstract must 
-% be 350 words or less. Enforcing this requirement is not possible using LaTeX.
+% be 350 words or less. Enforcing this requirement is probably not possible 
+% using (just) LaTeX.
 \newenvironment{abstract}[0]{%
   \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
   \chapter*{Abstract}%
@@ -632,165 +852,15 @@
   \chaptermark{}%
 }
 
-% tableofcontents
-%
-% Since the "standard" bibliography command uses \MakeUppercase, the simplest 
-% way to print in mixed case is by making \MakeUppercase a no-op.
-%
-% Note that this redefinition is repeated for the table of contents, list of 
-% tables, list of figures, and bibliography itself.
-\let\@oldtableofcontents\tableofcontents
-\renewcommand{\tableofcontents}{%
-  \if@uvaseasthesis@hidefront
-  \else
-    \if@uvaseasthesis@hyper \phantomsection \fi
-    \addcontentsline{toc}{chapter}{Contents}
-    
-    \begin{singlespace}
-      \renewcommand{\MakeUppercase}[1]{##1}
-      
-      \@oldtableofcontents
-    \end{singlespace}
-  \fi
-}
-
-% listoftables
-\let\@oldlistoftables\listoftables
-\renewcommand{\listoftables}{%
-  \if@uvaseasthesis@hidefront
-  \else
-    \clearpage
-    \if@uvaseasthesis@hyper \phantomsection \fi
-    \addcontentsline{toc}{section}{List of Tables}
-    
-    \begin{singlespace}
-      \renewcommand{\MakeUppercase}[1]{##1}
-      
-      \@oldlistoftables
-    \end{singlespace}
-  \fi
-}
-
-% listoffigures
-\let\@oldlistoffigures\listoffigures
-\renewcommand{\listoffigures}{%
-  \if@uvaseasthesis@hidefront
-  \else
-    \clearpage
-    \if@uvaseasthesis@hyper \phantomsection \fi
-    \addcontentsline{toc}{section}{List of Figures}
-    
-    \begin{singlespace}
-      \renewcommand{\MakeUppercase}[1]{##1}
-      
-      \@oldlistoffigures
-    \end{singlespace}
-  \fi
-}
-
-% bibliography
-\bibliographystyle{%
-  \if@uvaseasthesis@alphacitations%
-    alpha%
-  \else%
-    unsrt%
-  \fi%
-}
-
-\let\@oldbibliography\bibliography\relax
-\renewcommand{\bibliography}[1]{%
-  \if@uvaseasthesis@hideback
-  \else
-    \if@uvaseasthesis@hyper \phantomsection \fi
-    \addcontentsline{toc}{chapter}{Bibliography}
-    
-    \begingroup
-      \raggedright
-      \singlespacing
-      
-      \setlength{\parskip}{\baselineskip}
-      
-      \renewcommand{\MakeUppercase}[1]{##1}
-      \@oldbibliography{#1}
-    \endgroup
-  \fi
-}
-
-% header / footer
-\def\ps@myheadings{%
-  % HEADER of ODD numbered pages
-  \def\@oddhead{\rightmark\hfill\thepage}%
-  % HEADER of EVEN numbered pages
-  \def\@evenhead{%
-      \if@uvaseasthesis@twoside %
-        \thepage\hfill %
-      \fi %
-      \leftmark %
-      \if@uvaseasthesis@twoside %
-      \else %
-        \hfill\thepage %
-      \fi%
-  }%
-  % FOOTER of ODD numbered pages
-  \def\@oddfoot{%
-      \if@uvaseasthesis@draft %
-        \hfill \uvaseasthesis@draftnotice \hfill %
-      \fi%
-  }%
-  % FOOTER of EVEN numbered pages
-  \def\@evenfoot{%
-      \if@uvaseasthesis@draft %
-        \hfill \uvaseasthesis@draftnotice \hfill %
-      \fi%
-  }%
-}
-\pagestyle{myheadings}
-
-\renewcommand{\chaptermark}[1]{%
-  \markboth{% LEFT head(er)
-    \if@uvaseasthesis@compliantmargins%
-    \else%
-      Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
-    \fi
-  }{% RIGHT head(er)
-    \if@uvaseasthesis@compliantmargins%
-    \else%
-      Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
-    \fi%
-  }%
-}
-\renewcommand{\sectionmark}[1]{%
-  \markright{%
-    \if@uvaseasthesis@compliantmargins%
-    \else% RIGHT head(er)
-      \thesection\hspace{1em}\vrule\hspace{1em}#1
-    \fi%
-  }%
-}
-
-\pagenumbering{alph}
-
-\let\@oldfrontmatter\frontmatter\relax
-\DeclareRobustCommand{\frontmatter}{%
-  \@oldfrontmatter%
-  \pagenumbering{roman}%
-}
-
-\let\@oldmainmatter\mainmatter\relax
-\DeclareRobustCommand{\mainmatter}{%
-  \@oldmainmatter%
-  \pagenumbering{arabic}%
-}
-
 % 5 January 2011 - JC
 % LaTeX is most uncooperative with regards to redefining the chapter command. 
 % While it is possible to backport some hacks from the book class, a portable 
 % (i.e., robust to different classes) solution appears out of reach.
 %
-% The fancyhdr package may provide an alternate workaround, but an alternative 
-% redefines the plain page style (ps@plain) as the myheadings page style 
-% (ps@myheadings). Hence, when LaTeX calls \thispagestyle(plain) at the start of
-% parts, chapters, etc., the myheadings page style will actually be used.
+% The fancyhdr package may provide an alternate workaround, but here we redefine
+% the plain page style (ps@plain) as the myheadings page style (ps@myheadings). 
+% Hence, when LaTeX calls \thispagestyle(plain) at the start of parts, chapters,
+% etc., the myheadings page style will actually be used.
 \if@uvaseasthesis@compliantmargins
   \let\ps@plain=\ps@myheadings\relax
 \fi
@@ -813,3 +883,28 @@
     \let\c@lstnumber=\c@sequential\relax
   }
 \fi
+
+%% =============================================================================
+%% PREAMBLE COMMANDS
+%% =============================================================================
+%% 7 January 2011 - JC
+%% These commands should be executed as part of the preamble, just before this 
+%% input file ends.
+
+% double space the complete document
+\doublespacing
+
+% number initial pages by a, b, c, ...
+\pagenumbering{alph}
+
+% page style
+\pagestyle{myheadings}
+
+% bibliography style
+\bibliographystyle{%
+  \if@uvaseasthesis@alphacitations%
+    alpha%
+  \else%
+    unsrt%
+  \fi%
+}
