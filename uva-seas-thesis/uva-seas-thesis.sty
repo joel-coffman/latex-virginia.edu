@@ -4,7 +4,7 @@
 %% Author: Joel Coffman <jcoffman@cs.virginia.edu>
 
 \def\uvaseasthesis@name{uva-seas-thesis}
-\def\uvaseasthesis@version{1.1.27}
+\def\uvaseasthesis@version{1.2.x}
 \def\uvaseasthesis@modified{2011/01/07} % YYYY/MM/DD (required)
 
 %% =============================================================================
@@ -26,7 +26,7 @@
 %% - Fixed bug where the acknowledgements (and probably abstract) were numbered
 %% - Option for sequential numbering of equations, tables, and figures
 %% - Rewrote internals to use newif for option handling
-%% 1.2.27
+%% 1.2.x
 %% - File reorganization
 %% - Fixed bug where conditional was not declared unless draft option specified
 %% - Added support for references by author name(s) and date of publication 
@@ -86,6 +86,7 @@
 %% compliant
 \DeclareOption{compliant}{
   \@uvaseasthesis@compliantcopyrighttrue
+  \@uvaseasthesis@compliantmarginstrue
 }
 
 %% compliantcopyright
@@ -122,18 +123,10 @@
   \@uvaseasthesis@electronictrue
 }
 
-%% hidefront | hideback | hidefrontback
+%% hidefront
 \newif\if@uvaseasthesis@hidefront\relax
 \DeclareOption{hidefront}{
   \@uvaseasthesis@hidefronttrue
-}
-\newif\if@uvaseasthesis@hideback\relax
-\DeclareOption{hideback}{
-  \@uvaseasthesis@hidebacktrue
-}
-\DeclareOption{hidefrontback}{
-  \@uvaseasthesis@hidefronttrue
-  \@uvaseasthesis@hidebacktrue
 }
 % NOTE: \if@mainmatter is defined by book.cls for determining if the document is
 % in its main matter (verses front or back matter).
@@ -157,12 +150,6 @@
 }
 \DeclareOption{nomicrotype}{
   \@uvaseasthesis@microtypefalse
-}
-
-%% openany
-\newif\if@uvaseasthesis@openany\relax
-\DeclareOption{openany}{
-  \@uvaseasthesis@openanytrue
 }
 
 %% print
@@ -204,11 +191,16 @@
   \@uvaseasthesis@bindtrue
   \@uvaseasthesis@draftfalse
   \@uvaseasthesis@hidefrontfalse
-  \@uvaseasthesis@hidebackfalse
   \@uvaseasthesis@hyperfalse % disable hyper to eliminate (link) colors
-  \@uvaseasthesis@openanyfalse
   \@uvaseasthesis@twosidefalse
 \fi
+
+%% electronic
+\if@uvaseasthesis@electronic
+  \@uvaseasthesis@bindfalse
+  \@uvaseasthesis@hypertrue
+\fi
+
 
 %% =============================================================================
 %% PACKAGES
@@ -271,6 +263,8 @@
       urlcolor=blue,% color for URL links
       hyperfootnotes=false,% disable links to footnotes (because feature broken)
       hyperindex,% make page numbers in index into hyperlinks
+      % must redefine internals for links in table of contents, etc. to work
+      % correctly
       %implicit=false,% don't redefine LaTeX internals (e.g., \label)
       pdfstartview={FitH},% startup page view: fit width of page to window
       bookmarks
@@ -429,24 +423,42 @@
 % 6 January 2011 - JC
 % Center figures by default (as required by SEAS) and set the default placement 
 % avoid pages of floats.
-\let\oldfigure=\figure\relax
-\let\endoldfigure=\endfigure\relax
-\renewenvironment{figure}[1][tbh]{%
-  \begin{oldfigure}[#1]%
-    \centering%
+%\let\oldfigure=\figure\relax
+%\let\endoldfigure=\endfigure\relax
+%\renewenvironment{figure}[1][tbh]{%
+%  \begin{oldfigure}[#1]%
+%    \centering%
+%}{%
+%  \end{oldfigure}%
+%}
+\renewenvironment{figure}[1][tbh]{% \fps@figure is the original default
+  \edef\@tempa{\noexpand\@float{figure}[#1]}%
+  \@tempa\centering%
+  \if@uvaseasthesis@hyper
+    \capstart
+  \fi
 }{%
-  \end{oldfigure}%
+  \end@float%
 }
 
 % 6 January 2011 - JC
 % By extension, also center tables (see above).
-\let\oldtable=\table\relax
-\let\endoldtable=\endtable\relax
-\renewenvironment{table}[1][tbh]{%
-  \begin{oldtable}[#1]%
-    \centering%
+%\let\oldtable=\table\relax
+%\let\endoldtable=\endtable\relax
+%\renewenvironment{table}[1][tbh]{%
+%  \begin{oldtable}[#1]%
+%    \centering%
+%}{%
+%  \end{oldtable}%
+%}
+\renewenvironment{table}[1][tbh]{% \fps@table is the original default
+  \edef\@tempa{\noexpand\@float{table}[#1]}%
+  \@tempa\centering%
+  \if@uvaseasthesis@hyper
+    \capstart
+  \fi
 }{%
-  \end{oldtable}%
+  \end@float%
 }
 
 % tableofcontents
@@ -456,23 +468,30 @@
 %
 % Note that this redefinition is repeated for the table of contents, list of 
 % tables, list of figures, and bibliography itself.
-\let\@oldtableofcontents\tableofcontents
+\let\@oldtableofcontents=\tableofcontents\relax
 \renewcommand{\tableofcontents}{%
   \if@uvaseasthesis@hidefront
-  \else
     \if@uvaseasthesis@hyper \phantomsection \fi
     \addcontentsline{toc}{chapter}{Contents}
-    
-    \begin{singlespace}
-      \renewcommand{\MakeUppercase}[1]{##1}
-      
-      \@oldtableofcontents
-    \end{singlespace}
   \fi
+  
+  \begin{singlespace}
+    \renewcommand{\MakeUppercase}[1]{%
+      % the original tableofcontents command calls @mkboth automatically -- the
+      % simplest way to remove the header is having \MakeUppercase return 
+      % nothing
+      \if@uvaseasthesis@compliantmargins
+      \else
+        ##1
+      \fi
+    }
+    
+    \@oldtableofcontents
+  \end{singlespace}
 }
 
 %% listoftables
-\let\@oldlistoftables\listoftables
+\let\@oldlistoftables=\listoftables\relax
 \renewcommand{\listoftables}{%
   \if@uvaseasthesis@hidefront
   \else
@@ -481,7 +500,12 @@
     \addcontentsline{toc}{section}{List of Tables}
     
     \begin{singlespace}
-      \renewcommand{\MakeUppercase}[1]{##1}
+      \renewcommand{\MakeUppercase}[1]{%
+        \if@uvaseasthesis@compliantmargins
+	\else
+          ##1
+	\fi
+      }
       
       \@oldlistoftables
     \end{singlespace}
@@ -489,7 +513,7 @@
 }
 
 %% listoffigures
-\let\@oldlistoffigures\listoffigures
+\let\@oldlistoffigures=\listoffigures\relax
 \renewcommand{\listoffigures}{%
   \if@uvaseasthesis@hidefront
   \else
@@ -498,7 +522,12 @@
     \addcontentsline{toc}{section}{List of Figures}
     
     \begin{singlespace}
-      \renewcommand{\MakeUppercase}[1]{##1}
+      \renewcommand{\MakeUppercase}[1]{%
+        \if@uvaseasthesis@compliantmargins
+	\else
+          ##1
+	\fi
+      }
       
       \@oldlistoffigures
     \end{singlespace}
@@ -506,24 +535,22 @@
 }
 
 %% bibliography
-\let\@oldbibliography\bibliography\relax
+\let\@oldbibliography=\bibliography\relax
 \renewcommand{\bibliography}[1]{%
-  \if@uvaseasthesis@hideback
-  \else
-    \if@uvaseasthesis@hyper \phantomsection \fi
-    \addcontentsline{toc}{chapter}{Bibliography}
+  \if@uvaseasthesis@hyper \phantomsection \fi
+  \addcontentsline{toc}{chapter}{\bibname}
+  
+  \begingroup
+    \raggedright
+    \singlespacing
     
-    \begingroup
-      \raggedright
-      \singlespacing
-      
-      \setlength{\parskip}{\baselineskip}
-      
-      \renewcommand{\MakeUppercase}[1]{##1}
-      \@oldbibliography{#1}
-    \endgroup
-  \fi
+    \setlength{\parskip}{\baselineskip}
+    
+    \renewcommand{\MakeUppercase}[1]{##1}
+    \@oldbibliography{#1}
+  \endgroup
 }
+% \renewcommand{\bibname}{} % changes title of bibliography
 
 %% header / footer
 %
@@ -695,7 +722,10 @@
   \end{titlepage}
   
   \thispagestyle{empty} % \endtitlepage => \cleardoublepage, ensure blank
-  \if@uvaseasthesis@lineno \linenumbers \fi % re-enable line numbers
+
+  \if@uvaseasthesis@lineno 
+    \linenumbers % re-enable line numbers
+  \fi
 }
 
 %% copyright page
@@ -706,17 +736,20 @@
     \textcopyright\ Copyright by\\
     \@author\\
     All rights reserved\\
-    \graduation@monrth\ \graduation@year
+    \graduation@month\ \graduation@year
   \else
     % copyright notice specified by U.S. copyright office
     \textcopyright\ \graduation@year\ \@author
   \fi
 }
 \DeclareRobustCommand{\copyrightpage}{
-  \thispagestyle{empty} % no header or footer
   \if@uvaseasthesis@hidefront
   \else
-    \if@uvaseasthesis@lineno \nolinenumbers \fi % no line numbers
+    \thispagestyle{empty} % no header or footer
+
+    \if@uvaseasthesis@lineno 
+      \nolinenumbers % no line numbers
+    \fi
     
     % 14 August 2010 - JC
     % \singlespacing interferes with \begingroup and \centering, but 
@@ -730,7 +763,10 @@
     \end{center}
     
     \clearpage
-    \if@uvaseasthesis@lineno \linenumbers \fi % re-enable line numbers
+
+    \if@uvaseasthesis@lineno 
+      \linenumbers % re-enable line numbers
+    \fi
   \fi
 }
 
@@ -744,8 +780,15 @@
     
     \if@uvaseasthesis@hidefront
     \else
-      \if@uvaseasthesis@lineno \nolinenumbers \fi % no line numbers
-      \thispagestyle{plain} % page number in footer
+      \if@uvaseasthesis@lineno 
+        \nolinenumbers % no line numbers
+      \fi
+
+      %\if@uvaseasthesis@compliantmargins
+      %  \thispagestyle{empty} % no numbering
+      %\else
+        \thispagestyle{plain} % page number in footer
+      %\fi
       
       \section*{\centering\Large Approval Sheet}
       
@@ -814,7 +857,11 @@
 \DeclareRobustCommand{\dedication}[1]{%
   \if@uvaseasthesis@hidefront
   \else
-    \thispagestyle{plain} % page number in footer
+    %\if@uvaseasthesis@compliantmargins
+    %  \thispagestyle{empty} % no page number
+    %\else
+      \thispagestyle{plain} % page number in footer
+    %\fi
     
     \begingroup
       \centering
