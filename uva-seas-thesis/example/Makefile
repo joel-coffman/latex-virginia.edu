@@ -23,7 +23,7 @@ draft: paper.tex references.bib
 
 .PHONY: print
 print: paper.tex references.bib
-	./change-options.py --class final,oneside,openany --package bind
+	./change-options.py --class final,oneside,openany --package print
 	$(MAKE)
 
 .PHONY: electronic

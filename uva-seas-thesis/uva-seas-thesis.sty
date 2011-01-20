@@ -471,7 +471,10 @@
 \let\@oldtableofcontents=\tableofcontents\relax
 \renewcommand{\tableofcontents}{%
   \if@uvaseasthesis@hidefront
-    \if@uvaseasthesis@hyper \phantomsection \fi
+  \else
+    \if@uvaseasthesis@hyper 
+      \phantomsection 
+    \fi
     \addcontentsline{toc}{chapter}{Contents}
   \fi
   
@@ -771,7 +774,7 @@
 }
 
 %% signatures page
-\newcommand{\signaturestyle}[1]{}
+\newcommand{\signaturestyle}[1]{\LARGE #1}
 \def\signatures{%
   \begingroup
     % \newcommand is local within a group
@@ -809,8 +812,7 @@
       \newcommand{\signatureline}[1][]{%
         \signaturespace%
         \signatureindent%
-        \if@uvaseasthesis@final %
-        \else %
+        \if@uvaseasthesis@electronic %
           \makebox[0em][l]{%
             \makebox[\signaturewidth][c]{%
               \raisebox{.5em}[0pt][0pt]{%
