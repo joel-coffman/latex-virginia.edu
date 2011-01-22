@@ -34,7 +34,7 @@
 
 \newcommand{\thispackage}{\package{uva-seas-thesis}}
 
-\title{\thispackage\\{\normalsize (version 1.2.x)}}
+\title{\thispackage\\{\normalsize (version 1.2.32)}}
 \author{
   Joel Coffman\\
   \url{jcoffman@cs.virginia.edu}
@@ -121,6 +121,9 @@ Note that this option also disables printing the chapter and section titles in t
 \subsection{\option{draft}}
 Prints ``DRAFT" diagonally across the page and adds line numbers in the margin of each page.
 Note that if this option is specified to the document class, it will impact some packages (e.g., \package{microtype}) loaded by this package.
+
+After compiling your document with the draft option, it is necessary to remove the intermediate files before compiling without the draft option.
+Otherwise, you may receive an error due to the undefined command ``\textbackslash@LN.''
 
 \subsection{\option{electronic}}
 Convenience option, shorthand for passing the \option{hyper}, \option{nobind}, \option{openany} options to the package.
@@ -287,7 +290,7 @@ The following summarizes the version history of this package:
   1	& 0	& 5	& Added \option{ams} and \option{final} options\\
   1	& 0	& 6	& Added \option{microtype} option; left-justified bibliography\\
   1	& 1	& 15	& Fixed bug where acknowledgments (and probably abstract) were numbered; added option for sequential numbering of equations, figures, tables, etc.\\
-  1	& 2	& x	& Added \option{compliant} option to force best-possible compliance with \gls{SEAS} formatting guidelines; added \option{electronic} and \option{print} options; figures and tables automatically centered\\
+  1	& 2	& 32 	& Added \option{compliant} option to force best-possible compliance with \gls{SEAS} formatting guidelines; added \option{electronic} and \option{print} options; figures and tables automatically centered\\
   %\bottomrule
 \end{longtable}
 

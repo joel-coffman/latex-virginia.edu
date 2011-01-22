@@ -4,14 +4,15 @@
 %% Author: Joel Coffman <jcoffman@cs.virginia.edu>
 
 \def\uvaseasthesis@name{uva-seas-thesis}
-\def\uvaseasthesis@version{1.2.x}
-\def\uvaseasthesis@modified{2011/01/07} % YYYY/MM/DD (required)
+\def\uvaseasthesis@version{1.2.32}
+\def\uvaseasthesis@modified{2011/01/22} % YYYY/MM/DD (required)
 
 %% =============================================================================
 %% CHANGE LOG
 %% =============================================================================
 %% 0.9.0
 %% - Initial version (copied from personal thesis style file)
+%%
 %% 1.0.3
 %% - Readability rewrite
 %% - Improved handling of front matter constructs (e.g., signatures page)
@@ -22,11 +23,13 @@
 %% 1.0.6
 %% - Added microtype option
 %% - Left-justified bibliography
+%%
 %% 1.1.15
 %% - Fixed bug where the acknowledgements (and probably abstract) were numbered
 %% - Option for sequential numbering of equations, tables, and figures
 %% - Rewrote internals to use newif for option handling
-%% 1.2.x
+%% 
+%% 1.2.32
 %% - File reorganization
 %% - Fixed bug where conditional was not declared unless draft option specified
 %% - Added support for references by author name(s) and date of publication 
@@ -490,21 +493,21 @@
       \phantomsection 
     \fi
     \addcontentsline{toc}{chapter}{Contents}
-  \fi
-  
-  \begin{singlespace}
-    \renewcommand{\MakeUppercase}[1]{%
-      % the original tableofcontents command calls @mkboth automatically -- the
-      % simplest way to remove the header is having \MakeUppercase return 
-      % nothing
-      \if@uvaseasthesis@compliantmargins
-      \else
-        ##1
-      \fi
-    }
     
-    \@oldtableofcontents
-  \end{singlespace}
+    \begin{singlespace}
+      \renewcommand{\MakeUppercase}[1]{%
+        % the original tableofcontents command calls @mkboth automatically -- the
+        % simplest way to remove the header is having \MakeUppercase return 
+        % nothing
+        \if@uvaseasthesis@compliantmargins
+        \else
+          ##1
+        \fi
+      }
+      
+      \@oldtableofcontents
+    \end{singlespace}
+  \fi
 }
 
 %% listoftables
@@ -938,8 +941,13 @@
   \chaptermark{}%
 }
 % explicitly support alternative spelling of acknowledgments
-\let\acknowledgements=\acknowledgments\relax
-\let\endacknowledgements=\endacknowledgments\relax
+\newenvironment{acknowledgements}[0]{%
+  \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
+  \chapter*{Acknowledgements}%
+}{%
+  \clearpage%
+  \chaptermark{}%
+}
 
 % 5 January 2011 - JC
 % LaTeX is most uncooperative with regards to redefining the chapter command. 
