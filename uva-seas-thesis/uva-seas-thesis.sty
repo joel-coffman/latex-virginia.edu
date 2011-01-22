@@ -42,6 +42,8 @@
 %%   versions of thesis
 %% - Fixed (potential) bug where quotation environment had too much space before
 %%   and after quoted text
+%% - Removed the hideback and hidefrontback options due undefined references 
+%%   caused by existing implementation
 %% =============================================================================
 
 % 7 January 2011 - JC
@@ -58,7 +60,10 @@
 %% OPTIONS
 %% =============================================================================
 
-%% start options -- listed in alphabetical order
+%% simple options --------------------------------------------------------------
+%% The "simple" options are typically boolean -- most load additional packages  
+%% or control various aspects of this packages formatting.
+
 %% alphacitations
 \newif\if@uvaseasthesis@alphacitations\relax
 \DeclareOption{alphacitations}{
@@ -81,12 +86,6 @@
 }
 \DeclareOption{nobind}{
   \@uvaseasthesis@bindfalse
-}
-
-%% compliant
-\DeclareOption{compliant}{
-  \@uvaseasthesis@compliantcopyrighttrue
-  \@uvaseasthesis@compliantmarginstrue
 }
 
 %% compliantcopyright
@@ -117,12 +116,6 @@
   \@uvaseasthesis@drafttrue
 }
 
-%% electronic
-\newif\if@uvaseasthesis@electronic\relax
-\DeclareOption{electronic}{
-  \@uvaseasthesis@electronictrue
-}
-
 %% hidefront
 \newif\if@uvaseasthesis@hidefront\relax
 \DeclareOption{hidefront}{
@@ -137,12 +130,6 @@
   \@uvaseasthesis@hypertrue
 }
 
-%% final
-\newif\if@uvaseasthesis@final\relax
-\DeclareOption{final}{
-  \@uvaseasthesis@finaltrue
-}
-
 %% microtype | nomicrotype
 \newif\if@uvaseasthesis@microtype\relax
 \DeclareOption{microtype}{
@@ -150,12 +137,6 @@
 }
 \DeclareOption{nomicrotype}{
   \@uvaseasthesis@microtypefalse
-}
-
-%% print
-\newif\if@uvaseasthesis@print\relax
-\DeclareOption{print}{
-  \@uvaseasthesis@printtrue
 }
 
 %% sequential
@@ -169,6 +150,58 @@
 \DeclareOption{twoside}{
   \@uvaseasthesis@twosidetrue
 }
+
+%% compound options ------------------------------------------------------------
+%% These options imply other options and should be executed *after* all the 
+%% simple options (i.e., these options will *override* the existing values of 
+%% the simple options.
+
+%% compliant
+\DeclareOption{compliant}{
+  \@uvaseasthesis@compliantcopyrighttrue
+  \@uvaseasthesis@compliantmarginstrue
+}
+
+%% electronic
+\newif\if@uvaseasthesis@electronic\relax
+\DeclareOption{electronic}{
+  \@uvaseasthesis@electronictrue
+  
+  % set options implied by electronic
+  \@uvaseasthesis@bindfalse
+  \@uvaseasthesis@hypertrue
+}
+
+%% print
+\newif\if@uvaseasthesis@print\relax
+\DeclareOption{print}{
+  \@uvaseasthesis@printtrue
+  
+  % set options implied by print
+  \@uvaseasthesis@bindtrue
+  \@uvaseasthesis@hyperfalse
+  \@uvaseasthesis@twosidefalse
+}
+
+%% final
+\DeclareOption{final}{
+  % set options implied by final
+  \if@uvaseasthesis@draft
+    \PackageWarning{\uvaseasthesis@name}{%
+      The draft and final options should not both be specified%
+    }
+  \fi
+  % ensure draft is not active (at least as far as this package is concerned)
+  \@uvaseasthesis@draftfalse
+  
+  \if@uvaseasthesis@hidefront
+    \PackageWarning{\uvaseasthesis@name}{%
+      The hidefront and final options should not both be specified%
+    }
+  \fi
+  % ensure hidefront is not active
+  \@uvaseasthesis@hidefrontfalse
+}
 %% end options
 
 %% option handling
@@ -181,26 +214,6 @@
 % command.
 \ProcessOptions\relax % \relax avoids unnecessary lookahead due to * form
 % NOTE: no packages may be included before \ProcessOptions
-
-%% final
-% This final option overrides all others to create a bound version.
-%
-% 7 January 2011 - JC
-% TODO reorganize so final appears last (so it will be executed last)
-\if@uvaseasthesis@final
-  \@uvaseasthesis@bindtrue
-  \@uvaseasthesis@draftfalse
-  \@uvaseasthesis@hidefrontfalse
-  \@uvaseasthesis@hyperfalse % disable hyper to eliminate (link) colors
-  \@uvaseasthesis@twosidefalse
-\fi
-
-%% electronic
-\if@uvaseasthesis@electronic
-  \@uvaseasthesis@bindfalse
-  \@uvaseasthesis@hypertrue
-\fi
-
 
 %% =============================================================================
 %% PACKAGES
@@ -321,6 +334,7 @@
   
   % ensure all required information (degree, department (aka "field of study"),
   % graduation month, graduation year) has been provided
+  \if
   
   % if degree is not defined 
   \ifx \graduation@degree\undefined %
@@ -360,7 +374,7 @@
 }
 
 %% document end
-
+%\AtEndDocument
 
 %% =============================================================================
 %% COMPATIBILITY / BUG FIXES (for other packages)
@@ -562,13 +576,23 @@
 % warning) the existing definition.
 \def\ps@myheadings{%
   % HEADER of ODD numbered pages
-  \def\@oddhead{\rightmark\hfill\thepage}%
+  \def\@oddhead{%
+    \if@uvaseasthesis@compliantmargins %
+    \else %
+      \rightmark %
+    \fi %
+    \hfill\thepage
+  }%
   % HEADER of EVEN numbered pages
   \def\@evenhead{%
       \if@uvaseasthesis@twoside %
         \thepage\hfill %
       \fi %
-      \leftmark %
+      %
+      \if@uvaseasthesis@compliantmargins %
+        \leftmark %
+      \fi %
+      %
       \if@uvaseasthesis@twoside %
       \else %
         \hfill\thepage %
@@ -591,25 +615,16 @@
 %% chaptermark
 \renewcommand{\chaptermark}[1]{%
   \markboth{% LEFT head(er)
-    \if@uvaseasthesis@compliantmargins%
-    \else%
-      Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
-    \fi
+    Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
   }{% RIGHT head(er)
-    \if@uvaseasthesis@compliantmargins%
-    \else%
-      Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
-    \fi%
+    Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
   }%
 }
 
 %% sectionmark
 \renewcommand{\sectionmark}[1]{%
   \markright{%
-    \if@uvaseasthesis@compliantmargins%
-    \else% RIGHT head(er)
-      \thesection\hspace{1em}\vrule\hspace{1em}#1
-    \fi%
+    \thesection\hspace{1em}\vrule\hspace{1em}#1
   }%
 }
 
@@ -680,12 +695,23 @@
 
 % NEW COMMANDS / ENVIRONMENTS --------------------------------------------------
 
-\newcommand*\degree[1]{\def\graduation@degree{#1}}
-\newcommand*\program[1]{\def\graduation@program{#1}}
-\newcommand*\documenttype[1]{\def\document@type{#1}}
+\newcommand*\degree[1]{%
+  \def\graduation@degree{#1}%
+}
+\newcommand*\documenttype[1]{%
+  \def\document@type{#1}%
+}
 
-\newcommand*\graduationmonth[1]{\def\graduation@month{#1}}
-\newcommand*\graduationyear[1]{\def\graduation@year{#1}}
+\newcommand*\program[1]{%
+  \def\graduation@program{#1}%
+}
+
+\newcommand*\graduationmonth[1]{%
+  \def\graduation@month{#1}%
+}
+\newcommand*\graduationyear[1]{%
+  \def\graduation@year{#1}%
+}
 
 % 7 January 2011 - JC
 % Keep this length internal to the package (via the `@' in its name).
@@ -825,7 +851,7 @@
       }
       
       \renewcommand{\signature}[2][]{\signatureline[##1]\signatureindent##2}
-      \renewcommand{\dean}[1]{\def\@dean{##1}}
+      \renewcommand{\dean}[1]{\def\uvaseasthesis@dean{##1}}
       
       \singlespacing
       
@@ -843,7 +869,18 @@
       \addvspace{.75\signaturesize}
       \noindent Accepted for the School of Engineering and Applied Science:
       
-      \signature[\ifx\@dean\undefined\else\@dean\fi]{Dean\ifx\@dean\undefined \else\ \@dean\fi, School of Engineering and Applied Science}
+      \signature[%
+        \ifx\uvaseasthesis@dean\undefined%
+        \else%
+          \uvaseasthesis@dean,\ %
+        \fi%
+      ]{%
+        \ifx\uvaseasthesis@dean\undefined%
+        \else%
+          \ \uvaseasthesis@dean%
+        \fi%
+        Dean, School of Engineering and Applied Science%
+      }
     
     \begin{center}
       \graduation@month\ \graduation@year
@@ -900,6 +937,9 @@
   \clearpage%
   \chaptermark{}%
 }
+% explicitly support alternative spelling of acknowledgments
+\let\acknowledgements=\acknowledgments\relax
+\let\endacknowledgements=\endacknowledgments\relax
 
 % 5 January 2011 - JC
 % LaTeX is most uncooperative with regards to redefining the chapter command. 

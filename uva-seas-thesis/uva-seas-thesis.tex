@@ -34,7 +34,7 @@
 
 \newcommand{\thispackage}{\package{uva-seas-thesis}}
 
-\title{\thispackage\\{\normalsize (version 1.2.27)}}
+\title{\thispackage\\{\normalsize (version 1.2.x)}}
 \author{
   Joel Coffman\\
   \url{jcoffman@cs.virginia.edu}
@@ -120,11 +120,12 @@ Note that this option also disables printing the chapter and section titles in t
 
 \subsection{\option{draft}}
 Prints ``DRAFT" diagonally across the page and adds line numbers in the margin of each page.
+Note that if this option is specified to the document class, it will impact some packages (e.g., \package{microtype}) loaded by this package.
 
 \subsection{\option{electronic}}
 Convenience option, shorthand for passing the \option{hyper}, \option{nobind}, \option{openany} options to the package.
 
-\subsection{\option{hidefront} \textbar\ \option{hideback} \textbar\ \option{hidefrontback}}
+\subsection{\option{hidefront}}
 Hides the respective sections of the thesis for commands defined by this package.
 These options are particularly useful for drafts because they eliminate most of the boilerplate sections (e.g., copyright page, table of contents, list of tables) that do not immediately pertain to the content of the thesis.
 Note that these options do \emph{not} remove all material from the respective sections, just material created by this package's commands.
@@ -136,7 +137,7 @@ By default, hyperlinks within the PDF itself are colored red, URLs (to external 
 To change these defaults, the \command{hypersetup} command should be used in the document preamble.
 Listing~\ref{listing:overriding hyperref options} provides an example of how to override the default \package{hyperref} options.
 
-\begin{lstlisting}[gobble=2,float=tb,caption={
+\begin{lstlisting}[gobble=2,float=h,caption={
     An example of overriding the default \package{hyperref} options.
     All links will be colored black by default.
   },label={listing:overriding hyperref options}]
@@ -148,28 +149,30 @@ Listing~\ref{listing:overriding hyperref options} provides an example of how to 
 \end{lstlisting}
 
 \subsection{\option{final}}
-Creates a ``final'' (i.e., suitable for binding) version of the document.
-Specifying this option implies the \option{bind} option and disables the \option{draft}, \option{hidefront}, \option{hideback}, \option{hidefrontback}, \option{hyper}, \option{openany}, and \option{twoside} options.
-Note that this package cannot override options specified to the document class (e.g., \option{openany} or \option{twoside}); these global options should be removed to guarantee the desired result is achieved.
+Specifying this option disables the \option{draft} option and also the \option{hidefront} option.
+It may be passed to this package to override aspects of a global \option{draft} option specified to the document class.
 
 \subsection{\default{\option{microtype}} \textbar\ \option{nomicrotype}}
 Loads the \package{microtype} package to improve the microtypography of the document.
 The \package{microtype} package has no effect when the \option{draft} option is global (i.e., specified to the document class).
 Note that the \package{microtype} package relies on pdf\TeX; you should disable this option if you are creating \gls{DVI}[s].
 
-\subsection{\option{openany}}
-This option redefines the \texttt{\textbackslash cleardoublepage} command as \texttt{\textbackslash clearpage} so chapters, etc. may start on odd or even numbered pages.
-
 \subsection{\option{print}}
-Convenience option, shorthand for passing the \option{bind} option to the package.
+Convenience option, shorthand for passing the \option{bind} option to the package and disables the \option{hyper} and \option{twoside} options.
+
+Note that this package cannot set class-wide options.
+It is recommended that the \option{oneside} and \option{openany} options (or their equivalents) be passed to the document class (see Listing~\ref{listing:print options}).
+
+\begin{lstlisting}[gobble=2,float=h,caption={
+    Example of options that are recommend for creating a print version.
+  },label={listing:print options}]
+  \documentclass[final,oneside,openany]{book}
+  \usepackage[print]{uva-seas-thesis}
+\end{lstlisting}
 
 \subsection{\option{sequential}}
 This option numbers tables, figures, equations, etc. \emph{sequentially} in the order in which they appear in the \emph{\LaTeX} document.
 This feature is experimental and support may be dropped from future releases.
-
-\subsection{\option{svn}}
-Enables support for the \package{svn-multi} package, which gives the author access to version control information from Subversion.
-In addition, when the \option{draft} is also specified a table of revisions follows the document.
 
 \subsection{\option{twoside}}
 If the bind option is specified, this option assumes pages will be printed doublesided (i.e., the inner margin alternates between the left and right sides of the page).
@@ -182,7 +185,7 @@ Specifies the degree being sought.
 The text argument should be ``Master of Science,'' ``Master of Engineering,'' or ``Doctor of Philosophy.''
 If this command does \emph{not} appear in the document preamble, ``Doctor of Philosophy'' is assumed.
 
-\begin{lstlisting}[gobble=2,float=t,caption={Sample document preamble showing the \command{degree}, \command{program}, \command{documenttype}, \command{graduationmonth}, and \command{graduationyear} commands.}]
+\begin{lstlisting}[gobble=2,float=h,caption={Sample document preamble showing the \command{degree}, \command{program}, \command{documenttype}, \command{graduationmonth}, and \command{graduationyear} commands.}]
   \author{John Doe}
   \title{A Conceptual Object-Oriented Interface for an Integrated Logical Toolkit}
   
@@ -219,7 +222,7 @@ The copyright page should immediately follow the title page.
 Creates a signatures page (aka approval sheet) for the document.
 The signatures page is where you, your committee, and the dean sign your document.
 
-\begin{lstlisting}[gobble=2]
+\begin{lstlisting}[gobble=2,float=h]
   \renewcommand{\signaturestyle}[1]{\LARGE #1}
   \begin{signatures}
     \signature[Richard Miles]{Richard Miles, Adviser}
@@ -240,14 +243,14 @@ The \argument{person} argument specifies the person and (optionally) that indivi
 The \argument{name} argument specifies the text that should appear on the signature line for electronic versions of the thesis.
 
 \subsubsection{\command{dean\{name\}}}
-Specifies the name of the dean of the School of Engineering and Applied Science.
+Specifies the name of the dean of the \gls{SEAS}.
 
 \subsection{\environment{abstract}}
 Defines an abstract environment (not part of the traditional \LaTeX\ book class) for the document's abstract.
 \Gls{UVa} Print Services~\cite{uvaprint:thesis} specifies that the abstract must be 350 words or less;
 the length limit is \emph{not} enforced by this package (it may not even be possible to enforce using \LaTeX).
 
-\begin{lstlisting}[gobble=2]
+\begin{lstlisting}[gobble=2,float=h]
   \begin{abstract}
     This research problem is very challenging...
   \end{abstract}
@@ -256,7 +259,7 @@ the length limit is \emph{not} enforced by this package (it may not even be poss
 \subsection{\environment{acknowledgments}}
 Defines an acknowledgments environment for thanking everyone.
 
-\begin{lstlisting}[gobble=2]
+\begin{lstlisting}[gobble=2,float=h]
   \begin{acknowledgments}
     To everyone who's helped me during the past seven years...
   \end{acknowledgments}
@@ -284,6 +287,7 @@ The following summarizes the version history of this package:
   1	& 0	& 5	& Added \option{ams} and \option{final} options\\
   1	& 0	& 6	& Added \option{microtype} option; left-justified bibliography\\
   1	& 1	& 15	& Fixed bug where acknowledgments (and probably abstract) were numbered; added option for sequential numbering of equations, figures, tables, etc.\\
+  1	& 2	& x	& Added \option{compliant} option to force best-possible compliance with \gls{SEAS} formatting guidelines; added \option{electronic} and \option{print} options; figures and tables automatically centered\\
   %\bottomrule
 \end{longtable}
 
@@ -317,8 +321,8 @@ The suggested page order~\cite{uvaprint:thesis, seas:instructions} is as follows
 \end{itemize*}
 This package does not enforce this suggested page ordering (i.e., there is nothing to prevent the user from reordering these pages).
 
-Please be aware that \gls{SEAS}~\cite{seas:instructions} is actually inconsistent regarding the page order.
-Elsewhere it is stated that the title page should be immediately followed by the approval (signatures) page and the abstract.
+Please be aware that \gls{SEAS} is actually inconsistent regarding the page order.
+Elsewhere~\cite{seas:instructions} it is stated that the title page should be immediately followed by the approval (signatures) page and the abstract.
 
 In addition, \gls{SEAS}~\cite{seas:instructions} mandates that a list of symbols follow the list of figures.
 In the example document (Section~\ref{section:example}), it is assumed that the list of tables precedes the list of figures, but this order is not specified by \gls{SEAS}.
@@ -327,9 +331,9 @@ Please note that \gls{SEAS} also requires the symbols to appear in alphabetical 
 
 \paragraph{Page numbers}
 Page numbers should appear in the upper-right corner of pages~\cite{uvaprint:thesis} in the page margin~\cite{seas:instructions}.
-While this policy is followed in general, page numbers appear at the bottom of pages which start a new chapter.
+While this policy is followed in general, page numbers appear at the bottom of pages that start a new chapter.
 (This deviation is consistent with many other publications.)
-The \option{compliantmargins} package option will override \LaTeX's default page styles to achieve compliance with the standards.
+The \option{compliantmargins} option will override \LaTeX's default page styles to achieve compliance with the standards.
 
 \paragraph{Header and Footer}
 \Gls{SEAS}~\cite{seas:instructions} requires page numbers to be in the page margin and all other text to be kept within the page's margins.
@@ -358,7 +362,7 @@ This package overrides the figure and table environments to automatically place 
 In addition, this package does not prevent the user from moving figures and tables to a page of floats (e.g., by specifying `p' for the placement).
 
 \paragraph{References}
-References are to be numbered consecutively throughout the work~\cite{seas:instructions}.
+References are to be numbered consecutively throughout the work \cite{seas:instructions}.
 By default, the unsrt bibliography style is applied to provide this numbering.
 Please note that this package will not prevent the specification of a different bibliography style that does not meet \gls{SEAS}['s] requirements.
 One alternative allowed by \gls{SEAS} is references by author name(s) and date of publication, which is supported by the \option{alphacitations} package option.
