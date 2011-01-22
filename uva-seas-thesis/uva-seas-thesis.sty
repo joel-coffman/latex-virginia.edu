@@ -4,7 +4,7 @@
 %% Author: Joel Coffman <jcoffman@cs.virginia.edu>
 
 \def\uvaseasthesis@name{uva-seas-thesis}
-\def\uvaseasthesis@version{1.2.32}
+\def\uvaseasthesis@version{1.2.33}
 \def\uvaseasthesis@modified{2011/01/22} % YYYY/MM/DD (required)
 
 %% =============================================================================
@@ -47,6 +47,8 @@
 %%   and after quoted text
 %% - Removed the hideback and hidefrontback options due undefined references 
 %%   caused by existing implementation
+%% 1.2.33
+%% - Corrected bug in formatting of dean's signature
 %% =============================================================================
 
 % 7 January 2011 - JC
@@ -875,12 +877,12 @@
       \signature[%
         \ifx\uvaseasthesis@dean\undefined%
         \else%
-          \uvaseasthesis@dean,\ %
+          \uvaseasthesis@dean%
         \fi%
       ]{%
         \ifx\uvaseasthesis@dean\undefined%
         \else%
-          \ \uvaseasthesis@dean%
+          \uvaseasthesis@dean,\ %
         \fi%
         Dean, School of Engineering and Applied Science%
       }
