@@ -4,8 +4,8 @@
 %% Author: Joel Coffman <jcoffman@cs.virginia.edu>
 
 \def\uvaseasthesis@name{uva-seas-thesis}
-\def\uvaseasthesis@version{1.2.33}
-\def\uvaseasthesis@modified{2011/01/22} % YYYY/MM/DD (required)
+\def\uvaseasthesis@version{1.2.34}
+\def\uvaseasthesis@modified{2011/01/24} % YYYY/MM/DD (required)
 
 %% =============================================================================
 %% CHANGE LOG
@@ -49,6 +49,9 @@
 %%   caused by existing implementation
 %% 1.2.33
 %% - Corrected bug in formatting of dean's signature
+%% 1.2.34
+%% - Corrected bug in page headers (missing chapter / section title on even 
+%%   pages)
 %% =============================================================================
 
 % 7 January 2011 - JC
@@ -595,6 +598,7 @@
       \fi %
       %
       \if@uvaseasthesis@compliantmargins %
+      \else
         \leftmark %
       \fi %
       %
@@ -927,8 +931,25 @@
 % be 350 words or less. Enforcing this requirement is probably not possible 
 % using (just) LaTeX.
 \newenvironment{abstract}[0]{%
-  \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
+  \renewcommand{\chaptermark}[1]{%
+    \markboth{%
+      \if@uvaseasthesis@compliantmargins%
+      \else%
+        ##1%
+      \fi%
+    }{%
+      \if@uvaseasthesis@compliantmargins%
+      \else%
+        ##1%
+      \fi%
+    }%
+  }%
+  %
   \chapter*{Abstract}%
+  % \chapter* does not call \chaptermark with the name of the chapter. To have 
+  % page headers, this line is necessary. (See also the acknowledgments and 
+  % acknowledgements environments.)
+  \chaptermark{Abstract}%
 }{
   \clearpage%
   \chaptermark{}%
@@ -936,16 +957,44 @@
 
 %% acknowledgments
 \newenvironment{acknowledgments}[0]{%
-  \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
+  \renewcommand{\chaptermark}[1]{%
+    \markboth{%
+      \if@uvaseasthesis@compliantmargins%
+      \else%
+        ##1%
+      \fi%
+    }{%
+      \if@uvaseasthesis@compliantmargins%
+      \else%
+        ##1%
+      \fi%
+    }%
+  }%
+  %
   \chapter*{Acknowledgments}%
+  \chaptermark{Acknowledgments}% see comment in abstract environment
 }{%
   \clearpage%
   \chaptermark{}%
 }
 % explicitly support alternative spelling of acknowledgments
 \newenvironment{acknowledgements}[0]{%
-  \renewcommand{\chaptermark}[1]{\markboth{##1}{##1}}%
+  \renewcommand{\chaptermark}[1]{%
+    \markboth{%
+      \if@uvaseasthesis@compliantmargins%
+      \else%
+        ##1%
+      \fi%
+    }{%
+      \if@uvaseasthesis@compliantmargins%
+      \else%
+        ##1%
+      \fi%
+    }%
+  }%
+  %
   \chapter*{Acknowledgements}%
+  \chaptermark{Acknowledgements}% see comment in abstract environment
 }{%
   \clearpage%
   \chaptermark{}%

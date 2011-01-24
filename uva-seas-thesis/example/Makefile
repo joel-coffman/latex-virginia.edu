@@ -2,7 +2,9 @@
 TEX=pdflatex
 
 .PHONY: default
-default: paper.tex references.bib
+default: paper.pdf
+
+paper.pdf: paper.tex references.bib
 	cp ../uva-seas-thesis.sty .
 	$(TEX) paper.tex
 	bibtex paper
@@ -12,7 +14,7 @@ default: paper.tex references.bib
 
 .PHONY: clean
 clean:
-	$(RM) *.aux *.bbl *.blg *.log *.lof *.lot *.out *.toc
+	$(RM) *.aux *.bbl *.blg *.log *.lof *.lot *.out *.toc uva-seas-thesis.sty
 	find . -name "*.aux" -print0 | xargs -0 $(RM)
 
 # targets
@@ -28,7 +30,7 @@ print: paper.tex references.bib
 
 .PHONY: electronic
 electronic: paper.tex references.bib
-	./change-options.py --class final,openany,twoside --package electronic
+	./change-options.py --class final,openany --package electronic
 	$(MAKE)
 
 .PHONY: compliant
