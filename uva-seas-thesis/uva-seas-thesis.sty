@@ -52,6 +52,9 @@
 %% 1.2.34
 %% - Corrected bug in page headers (missing chapter / section title on even 
 %%   pages)
+%% 1.2.x
+%% - Changed definition of default placement of figures and tables (more 
+%%   compliant with LaTeX's default)
 %% =============================================================================
 
 % 7 January 2011 - JC
@@ -445,15 +448,8 @@
 % 6 January 2011 - JC
 % Center figures by default (as required by SEAS) and set the default placement 
 % avoid pages of floats.
-%\let\oldfigure=\figure\relax
-%\let\endoldfigure=\endfigure\relax
-%\renewenvironment{figure}[1][tbh]{%
-%  \begin{oldfigure}[#1]%
-%    \centering%
-%}{%
-%  \end{oldfigure}%
-%}
-\renewenvironment{figure}[1][tbh]{% \fps@figure is the original default
+\renewcommand*{\fps@figure}{!tb}
+\renewenvironment{figure}[1][\fps@figure]{%
   \edef\@tempa{\noexpand\@float{figure}[#1]}%
   \@tempa\centering%
   \if@uvaseasthesis@hyper
@@ -465,15 +461,8 @@
 
 % 6 January 2011 - JC
 % By extension, also center tables (see above).
-%\let\oldtable=\table\relax
-%\let\endoldtable=\endtable\relax
-%\renewenvironment{table}[1][tbh]{%
-%  \begin{oldtable}[#1]%
-%    \centering%
-%}{%
-%  \end{oldtable}%
-%}
-\renewenvironment{table}[1][tbh]{% \fps@table is the original default
+\renewcommand*{\fps@table}{!tb}
+\renewenvironment{table}[1][\fps@table]{%
   \edef\@tempa{\noexpand\@float{table}[#1]}%
   \@tempa\centering%
   \if@uvaseasthesis@hyper
@@ -633,7 +622,7 @@
 %% sectionmark
 \renewcommand{\sectionmark}[1]{%
   \markright{%
-    \thesection\hspace{1em}\vrule\hspace{1em}#1
+    \thesection\hspace{1em}\vrule\hspace{1em}#1%
   }%
 }
 

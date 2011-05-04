@@ -4,7 +4,7 @@ TEX=pdflatex
 .PHONY: default
 default: paper.pdf
 
-paper.pdf: paper.tex references.bib
+paper.pdf: paper.tex references.bib ../uva-seas-thesis.sty
 	cp ../uva-seas-thesis.sty .
 	$(TEX) paper.tex
 	bibtex paper
