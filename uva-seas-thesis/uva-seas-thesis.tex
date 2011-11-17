@@ -5,6 +5,7 @@
 \usepackage[final]{listings}
 \usepackage{longtable}
 \usepackage{mdwlist}
+\usepackage{ragged2e}
 \usepackage{url}
 \usepackage[svgnames]{xcolor}
 
@@ -34,14 +35,16 @@
 
 \newcommand{\thispackage}{\package{uva-seas-thesis}}
 
-\title{\thispackage\\{\normalsize (version 1.2.34)}}
+\clubpenalty=9999 % penalty for orphans
+\widowpenalty=9999 % penalty for widows
+
+
+\title{\thispackage\\{\normalsize (version 1.2.46)}}
 \author{
   Joel Coffman\\
   \url{jcoffman@cs.virginia.edu}
 }
 
-\clubpenalty=9999 % penalty for orphans
-\widowpenalty=9999 % penalty for widows
 
 \begin{document}
 \maketitle
@@ -70,6 +73,7 @@ The required packages are
 \begin{description*}
   \item[\package{geometry}] sets appropriate page margins
   \item[\package{mfirstuc}] capitalizes the first letter of words when necessary
+  \item[\package{ragged2e}] improves appearance of left- and right-justified environments
   \item[\package{setspace}] double spacing
 \end{description*}
 Additional packages are required depending on the package options.
@@ -178,8 +182,22 @@ This option numbers tables, figures, equations, etc. \emph{sequentially} in the 
 
 \emph{This feature is experimental and support may be dropped from future releases.}
 
+\subsection{\option{singlespace}}
+To conserve paper when printing drafts, the singlespace option disables double spacing in the document.
+This option should not be specified for the final version that will be submitted to \gls{SEAS}.
+
 \subsection{\option{twoside}}
 If the bind option is specified, this option assumes pages will be printed doublesided (i.e., the inner margin alternates between the left and right sides of the page).
+
+\subsection{\option{typewriterdoublespace}}
+The \package{setspace} package doublespacing command does not apply ``true'' double spacing that mimics double spacing from a typewriter---i.e., \package{setspace} gives the visual appearance of skipping a line of text but the actual space is slightly smaller.\footnote{
+  If the text height is the height of a font from the descender to the ascender, the intra-line space is the space between successive lines of text (i.e., the distance between the descender and ascender of the following line), and the line height is the text height \emph{plus} the intra-line space, \package{setspace} sets the intra-line space to the text height.
+  In contrast, skipping a line on a typewriter will make the space between successive lines equal to the intra-line space following the first line \emph{plus} the line height of the skipped line.
+
+  Thanks to Gu Lin for noting this difference.
+}
+This option mimics the double spacing provided by a typewriter.
+\Gls{SEAS} has accepted theses with the smaller double spacing provided by \package{setspace} so this option provided only for completeness and aesthetic appeal.
 
 %-------------------------------------------------------------------------------
 \section{Environments and Commands}
@@ -294,6 +312,7 @@ The following table summarizes the version history of this package:
   1	& 2	& 32 	& Added \option{compliant} option to force best-possible compliance with \gls{SEAS} formatting guidelines; added \option{electronic} and \option{print} options; figures and tables automatically centered\\
   1	& 2	& 33	& Corrected bug in formatting of dean's signature\\
   1	& 2	& 34	& Corrected bugs in page headers (missing header on even pages, missing header for frontmatter environments)\\
+  1     & 2     & 46    & Changed definition of default placement of floats; added \option{singlespace} and \option{typewriterdoublespace} options
   %\bottomrule
 \end{longtable}
 
@@ -379,7 +398,7 @@ One alternative allowed by \gls{SEAS} is references by author name(s) and date o
 Bibliographies created using this option will be sorted by author name, which is consistent with most other bibliography styles.
 
 %-------------------------------------------------------------------------------
-\raggedright
+\RaggedRight
 \bibliographystyle{abbrv}
 \bibliography{references}
 
