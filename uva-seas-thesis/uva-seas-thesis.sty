@@ -4,8 +4,8 @@
 %% Author: Joel Coffman <jcoffman@cs.virginia.edu>
 
 \def\uvaseasthesis@name{uva-seas-thesis}
-\def\uvaseasthesis@version{1.2.34}
-\def\uvaseasthesis@modified{2011/06/23} % YYYY/MM/DD (required)
+\def\uvaseasthesis@version{1.2.46}
+\def\uvaseasthesis@modified{2011/11/17} % YYYY/MM/DD (required)
 
 %% =============================================================================
 %% CHANGE LOG
@@ -60,6 +60,9 @@
 %% - Added typewriterdoublespace option that overrides setspace's double spacing
 %%   with true (typewriter) double spacing
 %% - Added singlespace option that disables double spacing (e.g., for drafts)
+%% 1.2.x
+%% - Single spacing and multi-line text in dedication
+%% - Acknowledgments hidden when hidefront specified
 %% =============================================================================
 
 % 7 January 2011 - JC
@@ -925,10 +928,11 @@
     
     \begingroup
       \centering
+      \singlespacing
       \if@uvaseasthesis@lineno \nolinenumbers \fi % no line numbers, ends at end of group
       
       \ \vfill
-      \emph{#1}
+      \textit{#1}
       \vfill
     \endgroup
     
@@ -969,25 +973,31 @@
 
 %% acknowledgments
 \newenvironment{acknowledgments}[0]{%
-  \renewcommand{\chaptermark}[1]{%
-    \markboth{%
-      \if@uvaseasthesis@compliantmargins%
-      \else%
-        ##1%
-      \fi%
-    }{%
-      \if@uvaseasthesis@compliantmargins%
-      \else%
-        ##1%
-      \fi%
+  \if@uvaseasthesis@hidefront%
+  \else%
+    \renewcommand{\chaptermark}[1]{%
+      \markboth{%
+        \if@uvaseasthesis@compliantmargins%
+        \else%
+          ##1%
+        \fi%
+      }{%
+        \if@uvaseasthesis@compliantmargins%
+        \else%
+          ##1%
+        \fi%
+      }%
     }%
-  }%
-  %
-  \chapter*{Acknowledgments}%
-  \chaptermark{Acknowledgments}% see comment in abstract environment
+    %
+    \chapter*{Acknowledgments}%
+    \chaptermark{Acknowledgments}% see comment in abstract environment
+  \fi%
 }{%
-  \clearpage%
-  \chaptermark{}%
+  \if@uvaseasthesis@hidefront%
+  \else%
+    \clearpage%
+    \chaptermark{}%
+  \fi%
 }
 % explicitly support alternative spelling of acknowledgments
 \newenvironment{acknowledgements}[0]{%
