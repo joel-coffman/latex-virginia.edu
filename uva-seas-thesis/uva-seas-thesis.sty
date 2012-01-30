@@ -2,10 +2,12 @@
 %%   LaTeX style for writing a Ph.D. (or Masters) thesis for the School of 
 %%   Engineering and Applied Science (SEAS) at the University of Virginia.
 %% Author: Joel Coffman <jcoffman@cs.virginia.edu>
+%% 
+%% Copyright 2010 Joel Coffman
 
 \def\uvaseasthesis@name{uva-seas-thesis}
-\def\uvaseasthesis@version{1.2.46}
-\def\uvaseasthesis@modified{2011/11/17} % YYYY/MM/DD (required)
+\def\uvaseasthesis@version{1.2.53}
+\def\uvaseasthesis@modified{2012/01/30} % YYYY/MM/DD (required)
 
 %% =============================================================================
 %% CHANGE LOG
@@ -25,7 +27,7 @@
 %% - Left-justified bibliography
 %%
 %% 1.1.15
-%% - Fixed bug where the acknowledgements (and probably abstract) were numbered
+%% - Fixed bug where the acknowledgments (and probably abstract) were numbered
 %% - Option for sequential numbering of equations, tables, and figures
 %% - Rewrote internals to use newif for option handling
 %% 
@@ -60,10 +62,26 @@
 %% - Added typewriterdoublespace option that overrides setspace's double spacing
 %%   with true (typewriter) double spacing
 %% - Added singlespace option that disables double spacing (e.g., for drafts)
-%% 1.2.x
+%% 1.2.53
 %% - Single spacing and multi-line text in dedication
-%% - Acknowledgments hidden when hidefront specified
+%% - Abstract and acknowledgments hidden when hidefront specified
+%% - Removed "Compiled" from draft notice in footer
+%% - Lightened draft watermark
+%% - Redefined acknowledgments environment to accept optional argument for 
+%%   chapter name and mark and use this feature for the implementation of 
+%%   acknowledgements environment
 %% =============================================================================
+
+%% =============================================================================
+%% TODO
+%% =============================================================================
+%% - Combine style and documentation into .dtx managed by Doc and DocStrip
+%% - Integrate with svn-multi package for version identifiers (particularly of
+%%   drafts)
+%% - Create thesis skeleton (Makefile, paper.tex, chapters/*.tex, figs/, etc.) 
+%%   to distribute as example
+%% =============================================================================
+
 
 % 7 January 2011 - JC
 % no idea what features of the LaTeX kernel are used by this package (for 
@@ -301,6 +319,11 @@
   \RequirePackage[pagewise]{lineno} % line numbers (per page)
 \fi
 
+%%
+\if@uvaseasthesis@hidefront
+  \RequirePackage{verbatim}%
+\fi
+
 %% hyper
 \if@uvaseasthesis@hyper
   \RequirePackage[%
@@ -344,14 +367,14 @@
 
 % draft watermark
 \if@uvaseasthesis@draft
-  \SetWatermarkLightness{0.9} % lighten watermark, 90% white
+  \SetWatermarkLightness{0.95} % lighten watermark, 90% white
   
   % line numbers on drafts
   \@uvaseasthesis@linenotrue
   
   \newcommand{\draftnotice}{%
     DRAFT: 
-    Compiled \timestamp
+    \timestamp
   }
 \fi
 
@@ -947,33 +970,8 @@
 % be 350 words or less. Enforcing this requirement is probably not possible 
 % using (just) LaTeX.
 \newenvironment{abstract}[0]{%
-  \renewcommand{\chaptermark}[1]{%
-    \markboth{%
-      \if@uvaseasthesis@compliantmargins%
-      \else%
-        ##1%
-      \fi%
-    }{%
-      \if@uvaseasthesis@compliantmargins%
-      \else%
-        ##1%
-      \fi%
-    }%
-  }%
-  %
-  \chapter*{Abstract}%
-  % \chapter* does not call \chaptermark with the name of the chapter. To have 
-  % page headers, this line is necessary. (See also the acknowledgments and 
-  % acknowledgements environments.)
-  \chaptermark{Abstract}%
-}{
-  \clearpage%
-  \chaptermark{}%
-}
-
-%% acknowledgments
-\newenvironment{acknowledgments}[0]{%
   \if@uvaseasthesis@hidefront%
+    \comment%
   \else%
     \renewcommand{\chaptermark}[1]{%
       \markboth{%
@@ -989,11 +987,46 @@
       }%
     }%
     %
-    \chapter*{Acknowledgments}%
-    \chaptermark{Acknowledgments}% see comment in abstract environment
+    \chapter*{Abstract}%
+    % \chapter* does not call \chaptermark with the name of the chapter. To have 
+    % page headers, this line is necessary. (See also the acknowledgments and 
+    % acknowledgments environments.)
+    \chaptermark{Abstract}%
+  \fi%
+}{
+  \if@uvaseasthesis@hidefront%
+    \endcomment%
+  \else%
+    \clearpage%
+    \chaptermark{}%
+  \fi%
+}
+
+%% acknowledgments
+\newenvironment{acknowledgments}[1][Acknowledgments]{%
+  \if@uvaseasthesis@hidefront%
+    \comment%
+  \else%
+    \renewcommand{\chaptermark}[1]{%
+      \markboth{%
+        \if@uvaseasthesis@compliantmargins%
+        \else%
+          ##1%
+        \fi%
+      }{%
+        \if@uvaseasthesis@compliantmargins%
+        \else%
+          ##1%
+        \fi%
+      }%
+    }%
+    %
+    \chapter*{#1}%
+    \chaptermark{#1}% see comment in abstract environment
   \fi%
 }{%
   \if@uvaseasthesis@hidefront%
+    \endcomment%
   \else%
     \clearpage%
     \chaptermark{}%
@@ -1001,25 +1034,9 @@
 }
 % explicitly support alternative spelling of acknowledgments
 \newenvironment{acknowledgements}[0]{%
-  \renewcommand{\chaptermark}[1]{%
-    \markboth{%
-      \if@uvaseasthesis@compliantmargins%
-      \else%
-        ##1%
-      \fi%
-    }{%
-      \if@uvaseasthesis@compliantmargins%
-      \else%
-        ##1%
-      \fi%
-    }%
-  }%
-  %
-  \chapter*{Acknowledgements}%
-  \chaptermark{Acknowledgements}% see comment in abstract environment
+  \acknowledgments[Acknowledgements]%
 }{%
-  \clearpage%
-  \chaptermark{}%
+  \endacknowledgments%
 }
 
 % 5 January 2011 - JC

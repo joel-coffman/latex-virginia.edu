@@ -39,7 +39,7 @@
 \widowpenalty=9999 % penalty for widows
 
 
-\title{\thispackage\\{\normalsize (version 1.2.46)}}
+\title{\thispackage\\{\normalsize (version 1.2.53)}}
 \author{
   Joel Coffman\\
   \url{jcoffman@cs.virginia.edu}
@@ -82,6 +82,7 @@ The package options and the packages they load are listed below.
   \item[\option{ams}] \package{amsmath}
   \item[\option{booktabs}] \package{booktabs}
   \item[\option{draft}] \package{type1cm}, \package{draftwatermark}, \package{lineno}
+  \item[\option{hidefront}] \package{verbatim}
   \item[\option{hyper}] \package{hyperref}, \package{hypcap}
   \item[\option{microtype}] \package{microtype}
 \end{description*}
@@ -136,6 +137,8 @@ Convenience option, shorthand for passing the \option{hyper}, \option{nobind}, \
 Hides the respective sections of the thesis for commands defined by this package.
 These options are particularly useful for drafts because they eliminate most of the boilerplate sections (e.g., copyright page, table of contents, list of tables) that do not immediately pertain to the content of the thesis.
 Note that these options do \emph{not} remove all material from the respective sections, just material created by this package's commands.
+
+%The \environment{abstract} and \environment{acknowledgments} environments are hidden via inclusion of the \package{verbatim} package, which is used to discard any text that apears in these environments.
 
 \subsection{\option{hyper}}
 Loads the \package{hyperref} package to create hyperlinks in the PDF document and the \package{hypcap} package to correct the location of the link target.
@@ -312,7 +315,8 @@ The following table summarizes the version history of this package:
   1	& 2	& 32 	& Added \option{compliant} option to force best-possible compliance with \gls{SEAS} formatting guidelines; added \option{electronic} and \option{print} options; figures and tables automatically centered\\
   1	& 2	& 33	& Corrected bug in formatting of dean's signature\\
   1	& 2	& 34	& Corrected bugs in page headers (missing header on even pages, missing header for frontmatter environments)\\
-  1     & 2     & 46    & Changed definition of default placement of floats; added \option{singlespace} and \option{typewriterdoublespace} options
+  1     & 2     & 46    & Changed definition of default placement of floats; added \option{singlespace} and \option{typewriterdoublespace} options\\
+  1     & 2     & 53    & Centered, single-spaced text in dedication; abstract and acknowledgments environments hidden when hidefront specified (requires inclusion of verbatim package); removed ``compiled'' from draft notice in page footer; lightened draft watermark; redefined acknowledgments environment for reuse in acknowledgements environment\\
   %\bottomrule
 \end{longtable}
 
