@@ -39,7 +39,7 @@
 \widowpenalty=9999 % penalty for widows
 
 
-\title{\thispackage\\{\normalsize (version 1.2.53)}}
+\title{\thispackage\\{\normalsize (version 1.2.54)}}
 \author{
   Joel Coffman\\
   \url{jcoffman@cs.virginia.edu}
@@ -307,16 +307,40 @@ The following table summarizes the version history of this package:
   %\toprule
   \multicolumn{3}{c}{Version} & Comments\\
   \midrule
-  0	& 9	& 0	& Initial version, extracted from formatting personal thesis\\[2ex] % FORMATTING
-  1	& 0	& 3	& Improved handling of front matter constructs (e.g., signatures page)\\
-  1	& 0	& 5	& Added \option{ams} and \option{final} options\\
-  1	& 0	& 6	& Added \option{microtype} option; left-justified bibliography\\
-  1	& 1	& 15	& Fixed bug where acknowledgments (and probably abstract) were numbered; added option for sequential numbering of equations, figures, tables, etc.\\
-  1	& 2	& 32 	& Added \option{compliant} option to force best-possible compliance with \gls{SEAS} formatting guidelines; added \option{electronic} and \option{print} options; figures and tables automatically centered\\
-  1	& 2	& 33	& Corrected bug in formatting of dean's signature\\
-  1	& 2	& 34	& Corrected bugs in page headers (missing header on even pages, missing header for frontmatter environments)\\
-  1     & 2     & 46    & Changed definition of default placement of floats; added \option{singlespace} and \option{typewriterdoublespace} options\\
-  1     & 2     & 53    & Centered, single-spaced text in dedication; abstract and acknowledgments environments hidden when hidefront specified (requires inclusion of verbatim package); removed ``compiled'' from draft notice in page footer; lightened draft watermark; redefined acknowledgments environment for reuse in acknowledgements environment\\
+  0	& 9	& 0	& 
+  Initial version, extracted from formatting personal thesis\\
+  \addlinespace
+  1	& 0	& 3	& 
+  Improved handling of front matter constructs (e.g., signatures page)\\
+  1	& 0	& 5	& 
+  Added \option{ams} and \option{final} options\\
+  1	& 0	& 6	& 
+  Added \option{microtype} option; left-justified bibliography\\
+  1	& 1	& 15	& 
+  Fixed bug where acknowledgments (and probably abstract) were numbered; 
+  added option for sequential numbering of equations, figures, tables, etc.\\
+  1	& 2	& 32 	& 
+  Added \option{compliant} option to force best-possible compliance with \gls{SEAS} formatting guidelines; 
+  added \option{electronic} and \option{print} options; 
+  figures and tables automatically centered\\
+  1	& 2	& 33	& 
+  Corrected bug in formatting of dean's signature\\
+  1	& 2	& 34	& 
+  Corrected bugs in page headers (missing header on even pages, missing header for frontmatter environments)\\
+  1     & 2     & 46    & 
+  Changed definition of default placement of floats; 
+  added \option{singlespace} and \option{typewriterdoublespace} options\\
+  1     & 2     & 53    & 
+  Centered, single-spaced text in dedication; 
+  abstract and acknowledgments environments hidden when hidefront specified (requires inclusion of verbatim package); 
+  removed ``compiled'' from draft notice in page footer; 
+  lightened draft watermark; 
+  redefined acknowledgments environment for reuse in acknowledgements environment\\
+  1     & 2     & 54    & 
+  Corrected bug in setting interline spacing with \option{typewriterdoublespace} option; 
+  \option{final} option set for microtype so not disabled by draft option; 
+  table of contents printed on back of title page with \option{hidefront} option;
+  lightened draft watermark
   %\bottomrule
 \end{longtable}
 

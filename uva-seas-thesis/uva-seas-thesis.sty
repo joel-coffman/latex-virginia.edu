@@ -6,8 +6,8 @@
 %% Copyright 2010 Joel Coffman
 
 \def\uvaseasthesis@name{uva-seas-thesis}
-\def\uvaseasthesis@version{1.2.53}
-\def\uvaseasthesis@modified{2012/01/30} % YYYY/MM/DD (required)
+\def\uvaseasthesis@version{1.2.54}
+\def\uvaseasthesis@modified{2012/03/17} % YYYY/MM/DD (required)
 
 %% =============================================================================
 %% CHANGE LOG
@@ -70,6 +70,14 @@
 %% - Redefined acknowledgments environment to accept optional argument for 
 %%   chapter name and mark and use this feature for the implementation of 
 %%   acknowledgements environment
+%% 1.2.54
+%% - Corrected bug in setting line space for typewriterdoublespace option
+%% - final option specified for microtype package so not disabled by draft
+%%   class option
+%% - Table of contents printed on back of title page with hidefront option
+%% 1.2.x
+%% - Removed final option for microtype package
+%% - Corrected bug causing extra page to appear after \listoffigures
 %% =============================================================================
 
 %% =============================================================================
@@ -80,6 +88,11 @@
 %%   drafts)
 %% - Create thesis skeleton (Makefile, paper.tex, chapters/*.tex, figs/, etc.) 
 %%   to distribute as example
+%%
+%% - Signatures extend onto second page with 12pt and 6+ committee members 
+%%   (thanks to Ross Gore)
+%% - showlabels support added to draft option automatically
+%% - print option should issue warning if twoside is active
 %% =============================================================================
 
 
@@ -165,6 +178,12 @@
 \newif\if@uvaseasthesis@hyper\relax
 \DeclareOption{hyper}{
   \@uvaseasthesis@hypertrue
+}
+
+%% margin
+\newif\if@uvaseasthesis@margin\relax
+\DeclareOption{margin}{
+  \@uvaseasthesis@margintrue
 }
 
 %% microtype | nomicrotype
@@ -280,7 +299,12 @@
         \else %
           1in %
         \fi,%
-    outer=1in,% away from binding
+    outer=% away from binding
+        \if@uvaseasthesis@margin %
+          1.5in %
+        \else %
+          1in %
+        \fi,%
     top=1in,%
     bottom=1in,%
     % 4 January 2011 - JC
@@ -289,8 +313,15 @@
     % text (e.g., the chapter title) in the page header violates the restriction
     % that text should not be printed in the margins.
     %includeheadfoot,% include header and footer in textheight
+    \if@uvaseasthesis@margin
+      marginparsep=.25in,
+      marginparwidth=1in%,
+    \fi
     asymmetric% twosided layout where margins are *not* swapped on alternate pages
   ]{geometry}
+
+% 
+\RequirePackage{fixltx2e}
 
 % for capitalizing the first letter of words
 \RequirePackage{mfirstuc}
@@ -316,10 +347,10 @@
 \if@uvaseasthesis@draft
   \RequirePackage{type1cm} % arbitrary font size (required by draftwatermark)
   \RequirePackage{draftwatermark} % print watermark across page
-  \RequirePackage[pagewise]{lineno} % line numbers (per page)
+  \RequirePackage[switch*,pagewise]{lineno} % line numbers (per page)
 \fi
 
-%%
+%% hidefront
 \if@uvaseasthesis@hidefront
   \RequirePackage{verbatim}%
 \fi
@@ -351,6 +382,30 @@
   \providecommand{\texorpdfstring}[2]{#1}
 \fi
 
+%% margin
+\if@uvaseasthesis@margin
+  \let\oldmarginpar=\marginpar\relax
+  \renewcommand{\marginpar}[2][\DefaultOption]{%
+    % if the optional argument is empty, set it equal to the mandatory argument
+    \def\DefaultOption{#2}%
+    %
+    \-\oldmarginpar[% left text
+      \noindent\RaggedRight\small\parskip=1ex #1%
+    ]{% right text
+      \noindent\RaggedRight\small\parskip=1ex #2%
+    }%
+  }
+
+  \RequirePackage{mparhack} % superseded by marginfix?
+  %\RequirePackage{marginfix} % not available by default in Ubuntu 10.04
+  \RequirePackage[outer,marginal]{showlabels}
+  
+  \renewcommand{\showlabelfont}{\scriptsize\normalfont}
+  \renewcommand{\showlabelsetlabel}[1]{%
+    \parbox[t]{1in}{\RaggedRight \showlabelfont #1}
+  }
+\fi
+
 %% microtype
 \if@uvaseasthesis@microtype
   \RequirePackage{microtype}
@@ -367,7 +422,7 @@
 
 % draft watermark
 \if@uvaseasthesis@draft
-  \SetWatermarkLightness{0.95} % lighten watermark, 90% white
+  \SetWatermarkLightness{0.975} % lighten watermark, 97.5% white
   
   % line numbers on drafts
   \@uvaseasthesis@linenotrue
@@ -391,7 +446,6 @@
   
   % ensure all required information (degree, department (aka "field of study"),
   % graduation month, graduation year) has been provided
-  \if
   
   % if degree is not defined 
   \ifx \graduation@degree\undefined %
@@ -437,6 +491,26 @@
 %% COMPATIBILITY / BUG FIXES (for other packages)
 %% =============================================================================
 
+% frontmatter and mainmatter by default do not obey the openany option
+\renewcommand{\frontmatter}{%
+  \if@openright
+    \cleardoublepage
+  \else
+    \clearpage
+  \fi
+  \@mainmatterfalse
+  \pagenumbering{roman}
+}
+\renewcommand{\mainmatter}{%
+  \if@openright
+    \cleardoublepage
+  \else
+    \clearpage
+  \fi
+  \@mainmattertrue
+  \pagenumbering{arabic}
+}
+
 % Counter bug for spacing quotes -- too much whitespace is currently inserted 
 % (a blank (doublespaced) line before and after the quote environment).
 %
@@ -445,12 +519,14 @@
 \if@uvaseasthesis@singlespace\else
   \let\oldquote=\quote\relax
   \let\endoldquote=\endquote\relax
-  \renewenvironment{quote}{%
-    \vspace{-.5\baselineskip}%
+  \renewenvironment{quote}{% 
+    % Technically -0.6 is only correct for 10pt, but it's close enough for 11pt
+    % and 12pt that it probably won't be that noticeable.
+    \vspace{-0.5\baselineskip}%
     \begin{oldquote}%
   }{%
     \end{oldquote}%
-    \vspace{-.5\baselineskip}%
+    \vspace{-0.5\baselineskip}%
   }
 \fi
 
@@ -460,11 +536,11 @@
   \let\oldquotation=\quotation\relax
   \let\endoldquotation=\endquotation\relax
   \renewenvironment{quotation}{%
-    \vspace{-.5\baselineskip}%
+    \vspace{-0.5\baselineskip}%
     \begin{oldquotation}%
   }{%
     \end{oldquotation}%
-    \vspace{-.5\baselineskip}%
+    \vspace{-0.5\baselineskip}%
   }
 \fi
 
@@ -531,27 +607,37 @@
 % tables, list of figures, and bibliography itself.
 \let\@oldtableofcontents=\tableofcontents\relax
 \renewcommand{\tableofcontents}{%
+  % allows the table of contents to be printed on the back of the title page
+  \if@uvaseasthesis@hidefront
+    \setcounter{tocdepth}{0} % only one page => only print chapters
+  \fi
+
+  \if@uvaseasthesis@hyper 
+    \phantomsection 
+  \fi
+
   \if@uvaseasthesis@hidefront
   \else
-    \if@uvaseasthesis@hyper 
-      \phantomsection 
-    \fi
     \addcontentsline{toc}{chapter}{Contents}
-    
-    \begin{singlespace}
-      \renewcommand{\MakeUppercase}[1]{%
-        % the original tableofcontents command calls @mkboth automatically -- the
-        % simplest way to remove the header is having \MakeUppercase return 
-        % nothing
-        \if@uvaseasthesis@compliantmargins
-        \else
-          ##1
-        \fi
-      }
-      
-      \@oldtableofcontents
-    \end{singlespace}
   \fi
+  
+  \begin{singlespace}
+    \renewcommand{\MakeUppercase}[1]{%
+      % the original tableofcontents command calls @mkboth automatically -- the
+      % simplest way to remove the header is having \MakeUppercase return 
+      % nothing
+      \if@uvaseasthesis@compliantmargins
+      \else
+        ##1
+      \fi
+    }
+    
+    \@oldtableofcontents
+    % no page number when on back of title page
+    \if@uvaseasthesis@hidefront
+      \thispagestyle{empty}
+    \fi
+  \end{singlespace}
 }
 
 %% listoftables
@@ -767,6 +853,12 @@
 %% title page
 \renewcommand{\maketitle}{%
   \if@uvaseasthesis@lineno \nolinenumbers \fi % no line numbers
+  % When printing drafts, it's nice to have the table of contents appear on the
+  % back of the title page. cleardoublepage must be temporarily redefined to 
+  % enable this functionality (because \endtitlepage calls \cleardoublepage).
+  \if@uvaseasthesis@hidefront
+    \let\cleardoublepage=\clearpage\relax
+  \fi
   \begin{titlepage}
     \centering
     \doublespacing
@@ -877,7 +969,7 @@
       \setlength{\signaturewidth}{.8\textwidth}
       
       \newlength{\signaturesize}
-      \setlength{\signaturesize}{30pt}
+      \setlength{\signaturesize}{30pt minus6pt}
       
       \newcommand{\signaturespace}{\vspace{\signaturesize}}
       \newcommand{\signatureindent}{\par\noindent\hspace{.2\textwidth}}
@@ -894,10 +986,15 @@
             }%
           }%
         \fi%
+        \nopagebreak[4] % prevent page break
         \rule{\signaturewidth}{\uvaseasthesis@hlineheight}
       }
       
-      \renewcommand{\signature}[2][]{\signatureline[##1]\signatureindent##2}
+      \renewcommand{\signature}[2][]{%
+        \signatureline[##1]%
+        \nopagebreak[4]% prevent page break
+        \signatureindent##2%
+      }
       \renewcommand{\dean}[1]{\def\uvaseasthesis@dean{##1}}
       
       \singlespacing
@@ -911,24 +1008,25 @@
 \def\endsignatures{%
   \if@uvaseasthesis@hidefront
   \else
-      \singlespacing
-      
-      \addvspace{.75\signaturesize}
-      \noindent Accepted for the School of Engineering and Applied Science:
-      
-      \signature[%
-        \ifx\uvaseasthesis@dean\undefined%
-        \else%
-          \uvaseasthesis@dean%
-        \fi%
-      ]{%
-        \ifx\uvaseasthesis@dean\undefined%
-        \else%
-          \uvaseasthesis@dean,\ %
-        \fi%
-        Dean, School of Engineering and Applied Science%
-      }
+    \singlespacing
     
+    \addvspace{.75\signaturesize}
+    \noindent Accepted for the School of Engineering and Applied Science:
+    
+    \signature[%
+      \ifx\uvaseasthesis@dean\undefined%
+      \else%
+        \uvaseasthesis@dean%
+      \fi%
+    ]{%
+      \ifx\uvaseasthesis@dean\undefined%
+      \else%
+        \uvaseasthesis@dean,\ %
+      \fi%
+      Dean, School of Engineering and Applied Science%
+    }
+    
+    \nopagebreak[4] % do not allow page break prior to date
     \begin{center}
       \graduation@month\ \graduation@year
     \end{center}
@@ -988,9 +1086,9 @@
     }%
     %
     \chapter*{Abstract}%
-    % \chapter* does not call \chaptermark with the name of the chapter. To have 
-    % page headers, this line is necessary. (See also the acknowledgments and 
-    % acknowledgments environments.)
+    % \chapter* does not call \chaptermark with the name of the chapter. To 
+    % have page headers, this line is necessary. (See also the acknowledgments 
+    % and acknowledgments environments.)
     \chaptermark{Abstract}%
   \fi%
 }{
@@ -1081,9 +1179,11 @@
 % double space the complete document
 \if@uvaseasthesis@typewriterdoublespace
   \setstretch{2.0}
-\else\if@uvaseasthesis@singlespace
 \else
-  \doublespacing
+  \if@uvaseasthesis@singlespace
+  \else
+    \doublespacing
+  \fi
 \fi
 
 % number initial pages by a, b, c, ...
