@@ -78,6 +78,9 @@
 %% 1.2.x
 %% - Removed final option for microtype package
 %% - Corrected bug causing extra page to appear after \listoffigures
+%% - Added \listoftablesandfigures command when using sequential numbering
+%% - Corrected spacing around verse environment
+%% - Added contents lines for abstract and acknowledgments
 %% =============================================================================
 
 %% =============================================================================
@@ -93,6 +96,7 @@
 %%   (thanks to Ross Gore)
 %% - showlabels support added to draft option automatically
 %% - print option should issue warning if twoside is active
+%% - sequential numbering should merge \listoftables and \listoffigures
 %% =============================================================================
 
 
@@ -544,6 +548,18 @@
   }
 \fi
 
+\if@uvaseasthesis@singlespace\else
+  \let\oldverse=\verse\relax
+  \let\endoldverse=\endverse\relax
+  \renewenvironment{verse}{%
+    \vspace{-0.5\baselineskip}%
+    \begin{oldverse}%
+  }{%
+    \end{oldverse}%
+    \vspace{-0.5\baselineskip}%
+  }
+\fi
+
 %% =============================================================================
 %% COMMANDS / ENVIRONMENTS
 %% =============================================================================
@@ -647,7 +663,7 @@
   \else
     \clearpage
     \if@uvaseasthesis@hyper \phantomsection \fi
-    \addcontentsline{toc}{section}{List of Tables}
+    \addcontentsline{toc}{section}{\listtablename}
     
     \begin{singlespace}
       \renewcommand{\MakeUppercase}[1]{%
@@ -669,7 +685,7 @@
   \else
     \clearpage
     \if@uvaseasthesis@hyper \phantomsection \fi
-    \addcontentsline{toc}{section}{List of Figures}
+    \addcontentsline{toc}{section}{\listfigurename}
     
     \begin{singlespace}
       \renewcommand{\MakeUppercase}[1]{%
@@ -683,6 +699,51 @@
     \end{singlespace}
   \fi
 }
+
+%% listoftablesandfigures
+\newcommand{\listoftablesandfigures}{%
+  \newcommand{\listtableandfigurename}{List of Tables and Figures}
+
+  \if@uvaseasthesis@hidefront
+  \else
+    \if@uvaseasthesis@sequential
+      \clearpage
+      \if@uvaseasthesis@hyper \phantomsection \fi
+      \addcontentsline{toc}{section}{\listtableandfigurename}
+      
+      \begin{singlespace}
+        \renewcommand{\MakeUppercase}[1]{%
+          \if@uvaseasthesis@compliantmargins
+          \else
+            ##1
+          \fi
+        }
+        
+        \if@twocolumn
+          \@restonecoltrue\onecolumn
+        \else
+          \@restonecolfalse
+        \fi
+        \chapter*{\listtableandfigurename}%
+          \@mkboth{%
+            \MakeUppercase\listtableandfigurename%
+          }{%
+            \MakeUppercase\listtableandfigurename%
+          }
+        \@starttoc{lof}
+        \if@restonecol
+          \twocolumn
+        \fi
+      \end{singlespace}
+    \else
+      \listoftables
+      \listoffigures
+    \fi
+  \fi
+}
+\if@uvaseasthesis@sequential
+  \def\ext@table{lof}
+\fi
 
 %% bibliography
 \let\@oldbibliography=\bibliography\relax
@@ -1085,6 +1146,7 @@
       }%
     }%
     %
+    \addcontentsline{toc}{chapter}{Abstract}
     \chapter*{Abstract}%
     % \chapter* does not call \chaptermark with the name of the chapter. To 
     % have page headers, this line is necessary. (See also the acknowledgments 
@@ -1119,6 +1181,7 @@
       }%
     }%
     %
+    \addcontentsline{toc}{chapter}{#1}
     \chapter*{#1}%
     \chaptermark{#1}% see comment in abstract environment
   \fi%
