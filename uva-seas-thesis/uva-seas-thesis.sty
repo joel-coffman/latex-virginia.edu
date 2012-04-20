@@ -81,6 +81,9 @@
 %% - Added \listoftablesandfigures command when using sequential numbering
 %% - Corrected spacing around verse environment
 %% - Added contents lines for abstract and acknowledgments
+%% - Added \listofsymbols command that assumes presence of glossaries package
+%% - Corrected spacing bug in electronic version of signatures page
+%% - Added support for images of signatures
 %% =============================================================================
 
 %% =============================================================================
@@ -97,6 +100,7 @@
 %% - showlabels support added to draft option automatically
 %% - print option should issue warning if twoside is active
 %% - sequential numbering should merge \listoftables and \listoffigures
+%% - Move \listofsymbols to personal style file
 %% =============================================================================
 
 
@@ -700,6 +704,31 @@
   \fi
 }
 
+\newcommand{\listofsymbols}{%
+  \newcommand{\listsymbolname}{List of Symbols}%
+  %
+  \if@uvaseasthesis@hidefront
+  \else
+    \newcommand{\@listofsymbols}{{% second brace scopes single spacing
+      %\singlespacing%
+      \let\cleardoublepage=\clearpage\relax
+      \printglossary[style=symbols,title=\listsymbolname,type=\symbolname]%
+    }}
+
+    \ifglstoc
+      \clearpage
+      \if@uvaseasthesis@hyper \phantomsection \fi
+      \addcontentsline{toc}{section}{\listsymbolname}
+      
+      \glstocfalse 
+      \@listofsymbols
+      \glstoctrue
+    \else
+      \@listofsymbols
+    \fi
+  \fi
+}
+
 %% listoftablesandfigures
 \newcommand{\listoftablesandfigures}{%
   \newcommand{\listtableandfigurename}{List of Tables and Figures}
@@ -1001,12 +1030,44 @@
 
 %% signatures page
 \newcommand{\signaturestyle}[1]{\LARGE #1}
+\newcommand{\authorsignature}{\@author}
 \def\signatures{%
+  \newlength{\signaturewidth}
+  \setlength{\signaturewidth}{.8\textwidth}
+  
+  \newlength{\signaturesize}
+  \setlength{\signaturesize}{30pt minus6pt}
+  
+  \newcommand{\signaturespace}{\vspace{\signaturesize}}
+  \newcommand{\signatureindent}{\par\noindent\hspace{.2\textwidth}}
+  
+  \newcommand{\signatureline}[1][]{%
+    \signaturespace%
+    \signatureindent%
+    \if@uvaseasthesis@electronic%
+      \makebox[0em][l]{%
+        \makebox[\signaturewidth][c]{%
+          \raisebox{0.5ex}[0pt][0pt]{%
+            \signaturestyle{##1}%
+          }%
+        }%
+      }%
+    \fi%
+    \nopagebreak[4]% prevent page break
+    \rule{\signaturewidth}{\uvaseasthesis@hlineheight}%
+  }
+  
+  \newcommand{\signature}[2][]{%
+    \signatureline[##1]%
+    \nopagebreak[4]% prevent page break
+    \signatureindent##2%
+  }
+  \newcommand{\dean}[2][\@empty]{%
+    \def\uvaseasthesis@deansignature{\ifx\@empty##1 ##2 \else ##1 \fi}%
+    \def\uvaseasthesis@dean{##2}%
+  }
+  
   \begingroup
-    % \newcommand is local within a group
-    \newcommand{\signature}[2][]{}
-    \newcommand{\dean}[1]{}
-    
     \if@uvaseasthesis@hidefront
     \else
       \if@uvaseasthesis@lineno 
@@ -1026,44 +1087,12 @@
         \graduation@degree\ (\graduation@program)
       \end{center}
      
-      \newlength{\signaturewidth}
-      \setlength{\signaturewidth}{.8\textwidth}
-      
-      \newlength{\signaturesize}
-      \setlength{\signaturesize}{30pt minus6pt}
-      
-      \newcommand{\signaturespace}{\vspace{\signaturesize}}
-      \newcommand{\signatureindent}{\par\noindent\hspace{.2\textwidth}}
-      
-      \newcommand{\signatureline}[1][]{%
-        \signaturespace%
-        \signatureindent%
-        \if@uvaseasthesis@electronic %
-          \makebox[0em][l]{%
-            \makebox[\signaturewidth][c]{%
-              \raisebox{.5em}[0pt][0pt]{%
-                \signaturestyle{##1}%
-              }%
-            }%
-          }%
-        \fi%
-        \nopagebreak[4] % prevent page break
-        \rule{\signaturewidth}{\uvaseasthesis@hlineheight}
-      }
-      
-      \renewcommand{\signature}[2][]{%
-        \signatureline[##1]%
-        \nopagebreak[4]% prevent page break
-        \signatureindent##2%
-      }
-      \renewcommand{\dean}[1]{\def\uvaseasthesis@dean{##1}}
-      
       \singlespacing
       
-      \signature[\@author]{\@author}
+      \signature[\authorsignature]{\@author}
       
       \addvspace{.75\signaturesize}
-      \noindent This \document@type\ has been read and approved by the Examining Committee:
+      \noindent This \document@type\ has been read and approved by the Examining Committee:\\[1ex]
   \fi
 }
 \def\endsignatures{%
@@ -1075,9 +1104,9 @@
     \noindent Accepted for the School of Engineering and Applied Science:
     
     \signature[%
-      \ifx\uvaseasthesis@dean\undefined%
+      \ifx\uvaseasthesis@deansignature\undefined%
       \else%
-        \uvaseasthesis@dean%
+        \uvaseasthesis@deansignature%
       \fi%
     ]{%
       \ifx\uvaseasthesis@dean\undefined%
