@@ -83,7 +83,8 @@
 %% - Added contents lines for abstract and acknowledgments
 %% - Added \listofsymbols command that assumes presence of glossaries package
 %% - Corrected spacing bug in electronic version of signatures page
-%% - Added support for images of signatures
+%% - Added support for images of signatures; signatures / names appear *without*
+%%   electronic option
 %% =============================================================================
 
 %% =============================================================================
@@ -1044,7 +1045,7 @@
   \newcommand{\signatureline}[1][]{%
     \signaturespace%
     \signatureindent%
-    \if@uvaseasthesis@electronic%
+    %\if@uvaseasthesis@electronic%
       \makebox[0em][l]{%
         \makebox[\signaturewidth][c]{%
           \raisebox{0.5ex}[0pt][0pt]{%
@@ -1052,7 +1053,7 @@
           }%
         }%
       }%
-    \fi%
+    %\fi%
     \nopagebreak[4]% prevent page break
     \rule{\signaturewidth}{\uvaseasthesis@hlineheight}%
   }
