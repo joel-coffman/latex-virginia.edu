@@ -85,6 +85,10 @@
 %% - Corrected spacing bug in electronic version of signatures page
 %% - Added support for images of signatures; signatures / names appear *without*
 %%   electronic option
+%% - Redefined \documenttype after preamble to return type of document (e.g., to
+%%   facilitate consistent use of "thesis" or "dissertation")
+%% - \raggedbottom automatically called when twoside is *not* specified
+%% - Redefined \cleardoublepage when twoside option specified 
 %% =============================================================================
 
 %% =============================================================================
@@ -102,6 +106,8 @@
 %% - print option should issue warning if twoside is active
 %% - sequential numbering should merge \listoftables and \listoffigures
 %% - Move \listofsymbols to personal style file
+%% - Add word count to abstract environment when draft option specified (thanks 
+%%   to Luther)
 %% =============================================================================
 
 
@@ -245,7 +251,7 @@
   \@uvaseasthesis@electronictrue
   
   % set options implied by electronic
-  \@uvaseasthesis@bindfalse
+  %\@uvaseasthesis@bindfalse
   \@uvaseasthesis@hypertrue
 }
 
@@ -302,6 +308,20 @@
 % margin must be 1.5 inches and the right, top, and bottom margins all 1 inch. 
 % No text *except page numbers* should enter the margin.
 \RequirePackage[%
+    % 4 January 2011 - JC
+    % By *not* including the header and footer, it is possible to push page 
+    % numbers into the page margin (as specified by SEAS). Including additional 
+    % text (e.g., the chapter title) in the page header violates the restriction
+    % that text should not be printed in the margins.
+    %includeheadfoot,% include header and footer in textheight
+    \if@uvaseasthesis@margin
+      marginparsep=.25in,
+      marginparwidth=1in,
+    \fi
+    \if@uvaseasthesis@twoside
+    \else
+    asymmetric,% twosided layout where margins are *not* swapped on alternate pages
+    \fi
     inner=% toward binding (i.e. left unless twoside option is specified)
         \if@uvaseasthesis@bind % only use 1.5-inch margin for bound copies
           1.5in %
@@ -315,21 +335,13 @@
           1in %
         \fi,%
     top=1in,%
-    bottom=1in,%
-    % 4 January 2011 - JC
-    % By *not* including the header and footer, it is possible to push page 
-    % numbers into the page margin (as specified by SEAS). Including additional 
-    % text (e.g., the chapter title) in the page header violates the restriction
-    % that text should not be printed in the margins.
-    %includeheadfoot,% include header and footer in textheight
-    \if@uvaseasthesis@margin
-      marginparsep=.25in,
-      marginparwidth=1in%,
-    \fi
-    asymmetric% twosided layout where margins are *not* swapped on alternate pages
+    bottom=1in%
   ]{geometry}
 
-% 
+% "empty" pages (e.g., in \cleardoublepage) should be really empty
+\RequirePackage{emptypage}
+
+% keep tables and figures in correct order
 \RequirePackage{fixltx2e}
 
 % for capitalizing the first letter of words
@@ -356,7 +368,9 @@
 \if@uvaseasthesis@draft
   \RequirePackage{type1cm} % arbitrary font size (required by draftwatermark)
   \RequirePackage{draftwatermark} % print watermark across page
-  \RequirePackage[switch*,pagewise]{lineno} % line numbers (per page)
+  \RequirePackage[\if@uvaseasthesis@twoside switch \else right \fi,pagewise]{lineno} % line numbers (per page)
+
+  \overfullrule=5pt
 \fi
 
 %% hidefront
@@ -474,6 +488,7 @@
   \ifx \document@type\undefined
     \def\document@type{thesis}
   \fi
+  \renewcommand*{\documenttype}[0]{\document@type}
   
   \ifx \graduation@month\undefined
     \PackageError{\uvaseasthesis@name}{%
@@ -499,6 +514,12 @@
 %% =============================================================================
 %% COMPATIBILITY / BUG FIXES (for other packages)
 %% =============================================================================
+
+\if@uvaseasthesis@twoside
+\else
+  \let\cleardoublepage=\clearpage\relax
+  \raggedbottom
+\fi
 
 % frontmatter and mainmatter by default do not obey the openany option
 \renewcommand{\frontmatter}{%
@@ -1081,6 +1102,7 @@
         \thispagestyle{plain} % page number in footer
       %\fi
       
+      \cleardoublepage
       \section*{\centering\Large Approval Sheet}
       
       \begin{center}
@@ -1122,7 +1144,7 @@
       \graduation@month\ \graduation@year
     \end{center}
     
-    \clearpage
+    \cleardoublepage
     \if@uvaseasthesis@lineno \linenumbers \fi % re-enable line numbers
   \fi
   \endgroup
@@ -1148,7 +1170,8 @@
       \vfill
     \endgroup
     
-    \clearpage
+    \cleardoublepage
+    \thispagestyle{empty}
   \fi
 }
 
@@ -1176,6 +1199,7 @@
       }%
     }%
     %
+    \cleardoublepage
     \addcontentsline{toc}{chapter}{Abstract}
     \chapter*{Abstract}%
     % \chapter* does not call \chaptermark with the name of the chapter. To 
@@ -1187,7 +1211,7 @@
   \if@uvaseasthesis@hidefront%
     \endcomment%
   \else%
-    \clearpage%
+    \cleardoublepage%
     \chaptermark{}%
   \fi%
 }
@@ -1211,6 +1235,7 @@
       }%
     }%
     %
+    \cleardoublepage
     \addcontentsline{toc}{chapter}{#1}
     \chapter*{#1}%
     \chaptermark{#1}% see comment in abstract environment
@@ -1219,7 +1244,7 @@
   \if@uvaseasthesis@hidefront%
     \endcomment%
   \else%
-    \clearpage%
+    \cleardoublepage%
     \chaptermark{}%
   \fi%
 }
