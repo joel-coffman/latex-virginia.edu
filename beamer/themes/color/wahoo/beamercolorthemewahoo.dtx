@@ -1,0 +1,173 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 2014 by Joel Coffman
+% -----------------------------------
+%
+% This file may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.2
+% of this license or (at your option) any later version.
+% The latest version of this license is in:
+%
+%   http://www.latex-project.org/lppl.txt
+%
+% and version 1.2 or later is part of all distributions of LaTeX
+% version 1999/12/01 or later.
+%
+% \fi
+%
+% \iffalse
+%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\ProvidesPackage{beamercolorthemewahoo}
+%<package>  [2016/10/02 v0.1.0 Beamer color theme for the University of Virginia]
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{beamerarticle}
+
+\input{.version}
+\usepackage{beamercolorthemewahoo}
+
+\usepackage{minted}
+\usepackage{url}
+
+\newcommand{\testcolor}[1]{%
+  \fboxsep0pt%
+  \fbox{%
+    \colorbox{#1}%
+    {\phantom{XX}}%
+  }%
+}
+
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\begin{document}
+  \DocInput{beamercolorthemewahoo.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \CheckSum{0}
+%
+% \CharacterTable
+% {Upper-case   \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+% Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+% Digits        \0\1\2\3\4\5\6\7\8\9
+% Exclamation   \!     Double quote  \"     Hash (number) \#
+% Dollar        \$     Percent       \%     Ampersand     \&
+% Acute accent  \'     Left paren    \(     Right paren   \)
+% Asterisk      \*     Plus          \+     Comma         \,
+% Minus         \-     Point         \.     Solidus       \/
+% Colon         \:     Semicolon     \;     Less than     \<
+% Equals        \=     Greater than  \>     Question mark \?
+% Commercial at \@     Left bracket  \[     Backslash     \\
+% Right bracket \]     Circumflex    \^     Underscore    \_
+% Grave accent  \`     Left brace    \{     Vertical bar  \|
+% Right brace   \}     Tilde         \~}
+%
+%
+% \changes{0.1.0}{2016/10/02}{%
+%   Initial version
+% }
+%
+% \GetFileInfo{beamercolorthemewahoo.sty}
+%
+% \DoNotIndex{\#,\$,\%,\&,\@,\\,\{,\},\^,\_,\~,\ }
+% \DoNotIndex{\@ne}
+% \DoNotIndex{\advance,\begingroup,\catcode,\closein}
+% \DoNotIndex{\closeout,\day,\def,\edef,\else,\empty,\endgroup}
+% \DoNotIndex{\global,\let,\relax}
+%
+% \DoNotIndex{\if@beamercolorthemewahoo@gray,
+%             \@beamercolorthemewahoo@graytrue}
+%
+% \title{
+%   The \textsf{beamercolorthemewahoo} package\thanks{%
+%     This document corresponds to \protect\textsf{beamerouterthemewahoo}~\fileversion-\version, dated \filedate.
+%   }
+% }
+% \author{Joel Coffman\\\texttt{joel.coffman@jhu.edu}}
+%
+% \maketitle
+%
+% \begin{abstract}
+% A Beamer color theme for the University of Virginia.
+% The ``wahoo'' color theme defines and uses colors from the color palette of the University of Virginia.
+% \end{abstract}
+%
+% \section{Usage}
+% Per Beamer's documentation, this color theme should be loaded via the following command:
+% \begin{minted}[
+%   gobble=2,
+% ]{latex}
+  \usecolortheme{wahoo}
+% \end{minted}
+%
+% \StopEventually{
+%   \PrintChanges
+%   \PrintIndex
+% }
+%
+% \appendix
+%
+% \iffalse
+%<*package>
+% \fi
+%
+% \section{Implementation}
+% See Beamer's documentation and the implementation of various themes for more information about the color palettes and color commands.
+% The \mintinline{latex}{default} color theme\footnote{%
+%   \url{http://mirrors.ctan.org/macros/latex/contrib/beamer/base/themes/color/beamercolorthemedefault.sty}
+% } is a particularly good resource for the available color commands.
+%
+% \subsection{Colors}
+% Define colors from the University of Virginia color palette.
+%    \begin{macrocode}
+\definecolor{Pantone 158}{RGB}{229,114,0}
+\definecolor{Pantone 294}{RGB}{0,47,108}
+\definecolor{Pantone 383}{RGB}{168,173,0}
+%    \end{macrocode}
+%
+% \subsection{Theme}
+% Override colors used by Beamer's color palettes.
+%
+% \mintinline{latex}{normal text} defines the most basic style for a presentation when another color palette does not apply.
+%    \begin{macrocode}
+\setbeamercolor{normal text}{
+%    \end{macrocode}
+% Use a white background.
+%    \begin{macrocode}
+  bg=white,
+%    \end{macrocode}
+% Use black foreground.
+%    \begin{macrocode}
+  fg=black,
+}
+%    \end{macrocode}
+%
+% \mintinline{latex}{alerted text} is an orange. \testcolor{Pantone 158}
+%    \begin{macrocode}
+\setbeamercolor{alerted text}{
+  fg=Pantone 158,
+}
+%    \end{macrocode}
+%
+% \mintinline{latex}{example text} is a dark green. \testcolor{Pantone 383}
+%    \begin{macrocode}
+\setbeamercolor{example text}{
+  fg=Pantone 383,
+}
+%    \end{macrocode}
+%
+% The \mintinline{latex}{structure} color palette is derived from a medium blue. \testcolor{Pantone 294}
+% Shades of this color are used for most elements in the presentation.
+%    \begin{macrocode}
+\setbeamercolor{structure}{
+  fg=Pantone 294,
+}
+%    \end{macrocode}
+% \iffalse
+%</package>
+% \fi
+%
+% \Finale
