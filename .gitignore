@@ -1,0 +1,12 @@
+# LaTeX derivatives
+*.aux
+*.bbl
+*.blg
+*.lof
+*.log
+*.lot
+*.out
+*.pdf
+*.toc
+
+*.synctex.gz
