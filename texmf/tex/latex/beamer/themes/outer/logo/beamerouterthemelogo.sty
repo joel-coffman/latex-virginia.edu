@@ -1,0 +1,140 @@
+%%
+%% This is file `beamerouterthemelogo.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% beamerouterthemelogo.dtx  (with options: `package')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 2014 by Joel Coffman
+%% 
+%% This file may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either
+%% version 1.2 of this license or (at your option) any later
+%% version. The latest version of this license is in:
+%% 
+%%   http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.2 or later is part of all distributions of
+%% LaTeX version 1999/12/01 or later.
+%% 
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{beamerouterthemelogo}
+  [2016/10/06 v0.1.2 Beamer outer theme for including organizational logos]
+\newif\if@beamerouterthemelogo@right\relax
+\DeclareOption{right}{
+  \@beamerouterthemelogo@righttrue
+}
+\ProcessOptions\relax
+\setbeamercolor*{palette quaternary}{
+  bg=structure.fg,
+  fg=white,
+  use=structure,
+}
+\useoutertheme{split}
+\usefonttheme[onlysmall]{structurebold}
+\defbeamertemplate*{sidebar right}{logo theme}
+{
+  \vfill%
+  \llap{\usebeamertemplate***{navigation symbols}\hskip0.1cm}%
+  \vskip2pt%
+}
+\defbeamertemplate*{headline}{logo theme}
+{%
+  \leavevmode%
+  \@tempdimb=2.4375ex%
+  \ifnum\beamer@subsectionmax<\beamer@sectionmax%
+    \multiply\@tempdimb by\beamer@sectionmax%
+  \else%
+    \multiply\@tempdimb by\beamer@subsectionmax%
+  \fi%
+  \ifdim\@tempdimb>0pt%
+    \advance\@tempdimb by 1.125ex%
+    \ifdim\@tempdimb<.5in%
+      \@tempdimb=.5in%
+    \fi%
+    \if@beamerouterthemelogo@right\else%
+      \begin{beamercolorbox}[%
+          ht=\@tempdimb,%
+          wd=.4\paperwidth,%
+      ]{section in head/foot}%
+        \smash{\rlap{\vbox to\@tempdimb{\vfil\insertlogo\vfil}}}
+      \end{beamercolorbox}%
+    \fi%
+    \begin{beamercolorbox}[%
+        ht=\@tempdimb,%
+        wd=.3\paperwidth,%
+    ]{section in head/foot}%
+      \vbox to\@tempdimb{%
+        \vfil%
+        \insertsectionnavigation{.3\paperwidth}%
+        \vfil%
+      }%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[%
+        ht=\@tempdimb,
+        wd=.3\paperwidth,
+    ]{subsection in head/foot}%
+      \vbox to\@tempdimb{%
+        \vfil%
+        \insertsubsectionnavigation{.3\paperwidth}%
+        \vfil%
+      }%
+    \end{beamercolorbox}%
+    \if@beamerouterthemelogo@right%
+      \begin{beamercolorbox}[%
+          ht=\@tempdimb,%
+          right,%
+          wd=.4\paperwidth,%
+      ]{subsection in head/foot}%
+        \smash{\llap{\vbox to\@tempdimb{\vfil\insertlogo\vfil}}}
+      \end{beamercolorbox}%
+    \fi%
+  \fi%
+}
+\defbeamertemplate*{footline}{logo theme}
+{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[%
+        dp=1.125ex,%
+        ht=2.5ex,%
+        leftskip=1em,%
+        rightskip=1em,%
+        wd=0.4\paperwidth,%
+    ]{author in head/foot}%
+      {%
+        \usebeamerfont{institute in head/foot}
+        \insertshortinstitute%
+      }%
+      \hfill%
+      {%
+        \usebeamerfont{author in head/foot}%
+        \insertshortauthor%
+      }
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[
+        dp=1.125ex,%
+        ht=2.5ex,%
+        leftskip=1em,%
+        rightskip=1em plus1fil,%
+        wd=0.6\paperwidth,%
+    ]{title in head/foot}%
+      {%
+        \usebeamerfont{title in head/foot}%
+        \insertshorttitle%
+      }%
+      \hfill%
+      {%
+        \usebeamerfont{page number in head/foot}%
+        \insertframenumber{} / \inserttotalframenumber%
+      }%
+    \end{beamercolorbox}%
+  }%
+  \vskip0pt%
+}
+\endinput
+%%
+%% End of file `beamerouterthemelogo.sty'.
