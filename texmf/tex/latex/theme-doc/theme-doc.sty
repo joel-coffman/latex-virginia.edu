@@ -22,8 +22,8 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{theme-doc}[%
-    2016/12/24 %
-    v0.0.1 %
+    2016/12/31 %
+    v0.0.2 %
     Package to typeset documentation for Beamer themes%
 ]
 \RequirePackage{xpatch}
@@ -34,6 +34,13 @@
     }{}{}%
     \minted@checkstyle{default}%
   }{%
+  }%
+}
+\providecommand{\testcolor}[1]{%
+  \fboxsep0pt%
+  \fbox{%
+    \colorbox{#1}%
+    {\phantom{XX}}%
   }%
 }
 \endinput
