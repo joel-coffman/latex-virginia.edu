@@ -18,7 +18,7 @@
 % \iffalse
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{beamercolorthemewahoo}
-%<package>  [2016/12/31 v0.1.0 Beamer color theme for the University of Virginia]
+%<package>  [2017/01/13 v0.1.1 Beamer color theme for the University of Virginia]
 %
 %<*driver>
 \documentclass{ltxdoc}
@@ -132,6 +132,25 @@
 %   \url{http://mirrors.ctan.org/macros/latex/contrib/beamer/base/themes/color/beamercolorthemedefault.sty}
 % } is a particularly good resource for the available color commands.
 %
+% \subsection{Options}
+% Declare options and corresponding \LaTeX{} conditionals.
+%
+%    \begin{macrocode}
+\newif\if@beamercolorthemewahoo@overlystylish\relax
+\DeclareOption{overlystylish}{
+  \@beamercolorthemewahoo@overlystylishtrue
+}
+%    \end{macrocode}
+% \changes{0.1.1}{2017/01/13}{%
+%   Add \texttt{overlystylish} option
+% }
+%
+% Process options.
+% \mintinline{latex}{\relax} prevents unnecessary lookahead.
+%    \begin{macrocode}
+\ProcessOptions\relax
+%    \end{macrocode}
+%
 % \subsection{Colors}
 % Define colors from the University of Virginia color palette.
 %    \begin{macrocode}
@@ -147,13 +166,9 @@
 %    \begin{macrocode}
 \setbeamercolor{normal text}{
 %    \end{macrocode}
-% Use a white background.
+% Use black foreground unless \mintinline{latex}{overlystylish} has been specified in which case a white foreground is used.
 %    \begin{macrocode}
-  bg=white,
-%    \end{macrocode}
-% Use black foreground.
-%    \begin{macrocode}
-  fg=black,
+  fg=\if@beamercolorthemewahoo@overlystylish white\else black\fi,
 }
 %    \end{macrocode}
 %
@@ -175,9 +190,28 @@
 % Shades of this color are used for most elements in the presentation.
 %    \begin{macrocode}
 \setbeamercolor{structure}{
-  fg=Pantone 294,
+  bg=\if@beamercolorthemewahoo@overlystylish Pantone 294\else parent.bg\fi,
+  fg=\if@beamercolorthemewahoo@overlystylish white\else Pantone 294\fi,
 }
 %    \end{macrocode}
+%
+%    \begin{macrocode}
+\setbeamercolor{palette primary}{
+  bg=structure.bg,
+  fg=\if@beamercolorthemewahoo@overlystylish white\else Pantone 294\fi,
+  use=structure,
+}
+\setbeamercolor{palette quaternary}{
+  bg=\if@beamercolorthemewahoo@overlystylish Pantone 158\else Pantone 294\fi,
+  fg=white,
+}
+\if@beamercolorthemewahoo@overlystylish
+  \setbeamertemplate{background canvas}
+      [vertical shading]
+      [bottom=Pantone 294!80!white,middle=Pantone 294,top=Pantone 294!80!black]
+\fi
+%    \end{macrocode}
+%
 % \iffalse
 %</package>
 % \fi
