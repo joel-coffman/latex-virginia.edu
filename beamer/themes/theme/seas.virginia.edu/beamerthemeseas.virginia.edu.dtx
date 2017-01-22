@@ -18,7 +18,7 @@
 % \iffalse
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{beamerthemeseas.virginia.edu}
-%<package>  [2016/10/06 v0.1.0 Beamer theme for the School of Engineering and Applied Science at the University of Virginia]
+%<package>  [2017/01/22 v0.1.1 Beamer theme for the School of Engineering and Applied Science at the University of Virginia]
 %
 %<*driver>
 \documentclass{ltxdoc}
@@ -153,6 +153,26 @@
 }
 %    \end{macrocode}
 % \end{macro}
+%
+% Define \textsc{beamer} colors.
+%    \begin{macrocode}
+\setbeamercolor*{palette quaternary}{
+  bg=Pantone 294,
+  fg=white,
+}
+\setbeamercolor*{author in head/foot}{
+  bg=Pantone 294,
+  fg=white,
+}
+\setbeamercolor*{palette primary}{
+  bg=structure.bg,
+  fg=Pantone 294,
+  use=structure,
+}
+%    \end{macrocode}
+% \changes{0.1.1}{2017/01/22}{%
+%   Define palette colors
+% }
 %
 % \iffalse
 %</package>
