@@ -190,15 +190,14 @@
 % Shades of this color are used for most elements in the presentation.
 %    \begin{macrocode}
 \setbeamercolor{structure}{
-  bg=\if@beamercolorthemewahoo@overlystylish Pantone 294\else parent.bg\fi,
   fg=\if@beamercolorthemewahoo@overlystylish white\else Pantone 294\fi,
 }
 %    \end{macrocode}
 %
 %    \begin{macrocode}
 \setbeamercolor{palette primary}{
-  bg=structure.bg,
-  fg=\if@beamercolorthemewahoo@overlystylish white\else Pantone 294\fi,
+  bg=\if@beamercolorthemewahoo@overlystylish white\else structure.bg\fi,
+  fg=\if@beamercolorthemewahoo@overlystylish Pantone 158\else Pantone 294\fi,
   use=structure,
 }
 \setbeamercolor{palette quaternary}{
