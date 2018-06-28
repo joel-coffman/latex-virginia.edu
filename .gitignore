@@ -1,3 +1,7 @@
+.DS_Store
+.*.swp
+*~
+
 # LaTeX derivatives
 *.aux
 *.bbl
