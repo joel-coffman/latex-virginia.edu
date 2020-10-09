@@ -13,7 +13,7 @@ example.pdf: beamerthemeseas.virginia.edu.sty
 minted:
 	if ! [ -d $@ ]; then mkdir --parents $@; fi
 
-include ../../../../Makefile.mk
+include $(shell git rev-parse --show-toplevel)/Makefile.mk
 
 # fall-back for Beamer themes
 beamercolorthemewahoo.sty:

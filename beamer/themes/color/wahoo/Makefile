@@ -6,4 +6,4 @@ beamercolorthemewahoo.pdf: beamercolorthemewahoo.sty example.pdf
 
 example.pdf: beamercolorthemewahoo.sty
 
-include ../../../../Makefile.mk
+include $(shell git rev-parse --show-toplevel)/Makefile.mk
