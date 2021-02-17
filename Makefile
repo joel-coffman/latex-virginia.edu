@@ -2,7 +2,7 @@
 SHELL := /bin/bash
 
 
-packages := $(shell comm -12 <(find . -name "*.dtx" -exec dirname {} \; | sort) <(find . -name "*.ins" -exec dirname {} \; | sort) | uniq)
+packages := $(shell comm -12 <(find . -name "*.dtx" -exec dirname {} \; | sort) <(find . -name "*.ins" -exec dirname {} \; | sort) | uniq) uva-seas-thesis
 
 
 .PHONY: default

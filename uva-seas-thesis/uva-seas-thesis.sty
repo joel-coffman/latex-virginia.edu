@@ -1,0 +1,1319 @@
+%% uva-seas-thesis
+%%   LaTeX style for writing a Ph.D. (or Masters) thesis for the School of
+%%   Engineering and Applied Science (SEAS) at the University of Virginia.
+%% Author: Joel Coffman <jcoffman@cs.virginia.edu>
+%%
+%% Copyright 2010 Joel Coffman
+
+\def\uvaseasthesis@name{uva-seas-thesis}
+\def\uvaseasthesis@version{1.2.54}
+\def\uvaseasthesis@modified{2012/03/17} % YYYY/MM/DD (required)
+
+%% =============================================================================
+%% CHANGE LOG
+%% =============================================================================
+%% 0.9.0
+%% - Initial version (copied from personal thesis style file)
+%%
+%% 1.0.3
+%% - Readability rewrite
+%% - Improved handling of front matter constructs (e.g., signatures page)
+%% 1.0.4
+%% - Reorganized file structure and additional commenting
+%% 1.0.5
+%% - Added ams and final options
+%% 1.0.6
+%% - Added microtype option
+%% - Left-justified bibliography
+%%
+%% 1.1.15
+%% - Fixed bug where the acknowledgments (and probably abstract) were numbered
+%% - Option for sequential numbering of equations, tables, and figures
+%% - Rewrote internals to use newif for option handling
+%%
+%% 1.2.32
+%% - File reorganization
+%% - Fixed bug where conditional was not declared unless draft option specified
+%% - Added support for references by author name(s) and date of publication
+%%   (via the alphacitations package option)
+%% - Added compliant option to make this package follow the published formatting
+%%   guidelines as closely as possible
+%% - Added compliantmargins option to force pages to always be numbered in the
+%%   upper-right corner (and remove all other text from the page margin)
+%% - Figures and tables automatically centered (with top, bottom, and here) as
+%%   default placement options
+%% - Added copyright command to allow users to modify the copyright notice
+%% - Added electronic and print options to automatically set options for final
+%%   versions of thesis
+%% - Fixed (potential) bug where quotation environment had too much space before
+%%   and after quoted text
+%% - Removed the hideback and hidefrontback options due undefined references
+%%   caused by existing implementation
+%% 1.2.33
+%% - Corrected bug in formatting of dean's signature
+%% 1.2.34
+%% - Corrected bug in page headers (missing chapter / section title on even
+%%   pages)
+%% 1.2.46
+%% - Changed definition of default placement of figures and tables (more
+%%   compliant with LaTeX's default) -- should NOT have visible changes
+%% - Reduced orphan and widow penalty from infinite to "nearly" infinite due to
+%%   possibility of very awkward intra-paragraph space
+%% - Added typewriterdoublespace option that overrides setspace's double spacing
+%%   with true (typewriter) double spacing
+%% - Added singlespace option that disables double spacing (e.g., for drafts)
+%% 1.2.53
+%% - Single spacing and multi-line text in dedication
+%% - Abstract and acknowledgments hidden when hidefront specified
+%% - Removed "Compiled" from draft notice in footer
+%% - Lightened draft watermark
+%% - Redefined acknowledgments environment to accept optional argument for
+%%   chapter name and mark and use this feature for the implementation of
+%%   acknowledgements environment
+%% 1.2.54
+%% - Corrected bug in setting line space for typewriterdoublespace option
+%% - final option specified for microtype package so not disabled by draft
+%%   class option
+%% - Table of contents printed on back of title page with hidefront option
+%% 1.2.x
+%% - Removed final option for microtype package
+%% - Corrected bug causing extra page to appear after \listoffigures
+%% - Added \listoftablesandfigures command when using sequential numbering
+%% - Corrected spacing around verse environment
+%% - Added contents lines for abstract and acknowledgments
+%% - Added \listofsymbols command that assumes presence of glossaries package
+%% - Corrected spacing bug in electronic version of signatures page
+%% - Added support for images of signatures; signatures / names appear *without*
+%%   electronic option
+%% - Redefined \documenttype after preamble to return type of document (e.g., to
+%%   facilitate consistent use of "thesis" or "dissertation")
+%% - \raggedbottom automatically called when twoside is *not* specified
+%% =============================================================================
+
+%% =============================================================================
+%% TODO
+%% =============================================================================
+%% - Combine style and documentation into .dtx managed by Doc and DocStrip
+%% - Integrate with svn-multi package for version identifiers (particularly of
+%%   drafts)
+%% - Create thesis skeleton (Makefile, paper.tex, chapters/*.tex, figs/, etc.)
+%%   to distribute as example
+%%
+%% - Signatures extend onto second page with 12pt and 6+ committee members
+%%   (thanks to Ross Gore)
+%% - showlabels support added to draft option automatically
+%% - print option should issue warning if twoside is active
+%% - sequential numbering should merge \listoftables and \listoffigures
+%% - Move \listofsymbols to personal style file
+%% - Add word count to abstract environment when draft option specified (thanks
+%%   to Luther)
+%% =============================================================================
+
+
+% 7 January 2011 - JC
+% no idea what features of the LaTeX kernel are used by this package (for
+% specifying a release date); not even sure how to test on an old (e.g., ~ 1995)
+% distribution
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{\uvaseasthesis@name}[%
+    \uvaseasthesis@modified\ UVa SEAS Thesis package by Joel Coffman %
+    (v. \uvaseasthesis@version)%
+]
+
+%% =============================================================================
+%% OPTIONS
+%% =============================================================================
+
+%% simple options --------------------------------------------------------------
+%% The "simple" options are typically boolean -- most load additional packages
+%% or control various aspects of this packages formatting.
+
+%% alphacitations
+\newif\if@uvaseasthesis@alphacitations\relax
+\DeclareOption{alphacitations}{
+  \@uvaseasthesis@alphacitationstrue
+}
+
+%% ams | noams
+\newif\if@uvaseasthesis@ams\relax
+\DeclareOption{ams}{
+  \@uvaseasthesis@amstrue
+}
+\DeclareOption{noams}{
+  \@uvaseasthesis@amsfalse
+}
+
+%% bind | nobind
+\newif\if@uvaseasthesis@bind\relax
+\DeclareOption{bind}{
+  \@uvaseasthesis@bindtrue
+}
+\DeclareOption{nobind}{
+  \@uvaseasthesis@bindfalse
+}
+
+%% compliantcopyright
+\newif\if@uvaseasthesis@compliantcopyright\relax
+\DeclareOption{compliantcopyright}{
+  \@uvaseasthesis@compliantcopyrighttrue
+}
+
+%% compliantmargins
+\newif\if@uvaseasthesis@compliantmargins\relax
+\DeclareOption{compliantmargins}{
+  \@uvaseasthesis@compliantmarginstrue
+}
+
+%% booktabs | nobooktabs
+\newif\if@uvaseasthesis@booktabs\relax
+\DeclareOption{booktabs}{
+  \@uvaseasthesis@booktabstrue
+}
+\DeclareOption{nobooktabs}{
+  \@uvaseasthesis@booktabsfalse
+}
+
+%% draft
+\newif\if@uvaseasthesis@draft\relax
+\newif\if@uvaseasthesis@lineno\relax
+\DeclareOption{draft}{
+  \@uvaseasthesis@drafttrue
+}
+
+%% hidefront
+\newif\if@uvaseasthesis@hidefront\relax
+\DeclareOption{hidefront}{
+  \@uvaseasthesis@hidefronttrue
+}
+% NOTE: \if@mainmatter is defined by book.cls for determining if the document is
+% in its main matter (verses front or back matter).
+
+%% hyper
+\newif\if@uvaseasthesis@hyper\relax
+\DeclareOption{hyper}{
+  \@uvaseasthesis@hypertrue
+}
+
+%% margin
+\newif\if@uvaseasthesis@margin\relax
+\DeclareOption{margin}{
+  \@uvaseasthesis@margintrue
+}
+
+%% microtype | nomicrotype
+\newif\if@uvaseasthesis@microtype\relax
+\DeclareOption{microtype}{
+  \@uvaseasthesis@microtypetrue
+}
+\DeclareOption{nomicrotype}{
+  \@uvaseasthesis@microtypefalse
+}
+
+%% sequential
+\newif\if@uvaseasthesis@sequential\relax
+\DeclareOption{sequential}{
+  \@uvaseasthesis@sequentialtrue
+}
+
+%% singlespace
+\newif\if@uvaseasthesis@singlespace\relax
+\DeclareOption{singlespace}{
+  \@uvaseasthesis@singlespacetrue
+}
+
+%% typewriterdoublespace
+\newif\if@uvaseasthesis@typewriterdoublespace\relax
+\DeclareOption{typewriterdoublespace}{
+  \@uvaseasthesis@typewriterdoublespacetrue
+}
+
+%% twoside
+\newif\if@uvaseasthesis@twoside\relax
+\DeclareOption{twoside}{
+  \@uvaseasthesis@twosidetrue
+}
+
+%% compound options ------------------------------------------------------------
+%% These options imply other options and should be executed *after* all the
+%% simple options (i.e., these options will *override* the existing values of
+%% the simple options.
+
+%% compliant
+\DeclareOption{compliant}{
+  \@uvaseasthesis@compliantcopyrighttrue
+  \@uvaseasthesis@compliantmarginstrue
+}
+
+%% electronic
+\newif\if@uvaseasthesis@electronic\relax
+\DeclareOption{electronic}{
+  \@uvaseasthesis@electronictrue
+
+  % set options implied by electronic
+  %\@uvaseasthesis@bindfalse
+  \@uvaseasthesis@hypertrue
+}
+
+%% print
+\newif\if@uvaseasthesis@print\relax
+\DeclareOption{print}{
+  \@uvaseasthesis@printtrue
+
+  % set options implied by print
+  \@uvaseasthesis@bindtrue
+  \@uvaseasthesis@hyperfalse
+  \@uvaseasthesis@twosidefalse
+}
+
+%% final
+\DeclareOption{final}{
+  % set options implied by final
+  \if@uvaseasthesis@draft
+    \PackageWarning{\uvaseasthesis@name}{%
+      The draft and final options should not both be specified%
+    }
+  \fi
+  % ensure draft is not active (at least as far as this package is concerned)
+  \@uvaseasthesis@draftfalse
+
+  \if@uvaseasthesis@hidefront
+    \PackageWarning{\uvaseasthesis@name}{%
+      The hidefront and final options should not both be specified%
+    }
+  \fi
+  % ensure hidefront is not active
+  \@uvaseasthesis@hidefrontfalse
+}
+%% end options
+
+%% option handling
+% execute `default' options
+\ExecuteOptions{ams,booktabs,microtype,nobind}
+% process the specified options
+%
+% \ProcessOptions executes options in the order of declaration; the starred form
+% (\ProcessOptions*) executes options in the order specified in the calling
+% command.
+\ProcessOptions\relax % \relax avoids unnecessary lookahead due to * form
+% NOTE: no packages may be included before \ProcessOptions
+
+%% =============================================================================
+%% PACKAGES
+%% =============================================================================
+
+%% REQUIRED --------------------------------------------------------------------
+
+% Set appropriate margins. According to UVa Print Services and SEAS, the left
+% margin must be 1.5 inches and the right, top, and bottom margins all 1 inch.
+% No text *except page numbers* should enter the margin.
+\RequirePackage[%
+    % 4 January 2011 - JC
+    % By *not* including the header and footer, it is possible to push page
+    % numbers into the page margin (as specified by SEAS). Including additional
+    % text (e.g., the chapter title) in the page header violates the restriction
+    % that text should not be printed in the margins.
+    %includeheadfoot,% include header and footer in textheight
+    \if@uvaseasthesis@margin
+      marginparsep=.25in,
+      marginparwidth=1in,
+    \fi
+    \if@uvaseasthesis@twoside
+    \else
+    asymmetric,% twosided layout where margins are *not* swapped on alternate pages
+    \fi
+    inner=% toward binding (i.e. left unless twoside option is specified)
+        \if@uvaseasthesis@bind % only use 1.5-inch margin for bound copies
+          1.5in %
+        \else %
+          1in %
+        \fi,%
+    outer=% away from binding
+        \if@uvaseasthesis@margin %
+          1.5in %
+        \else %
+          1in %
+        \fi,%
+    top=1in,%
+    bottom=1in%
+  ]{geometry}
+
+% "empty" pages (e.g., in \cleardoublepage) should be really empty
+\RequirePackage{emptypage}
+
+% keep tables and figures in correct order
+\RequirePackage{fixltx2e}
+
+% for capitalizing the first letter of words
+\RequirePackage{mfirstuc}
+
+% for better ragged right environment in bibliography
+\RequirePackage{ragged2e}
+
+% for double (or other special) spacing
+\RequirePackage{setspace}
+
+%% OPTIONAL --------------------------------------------------------------------
+%% ams
+\if@uvaseasthesis@ams
+  \RequirePackage{amsmath}
+\fi
+
+%% booktabs
+\if@uvaseasthesis@booktabs
+  \RequirePackage{booktabs}
+\fi
+
+%% draft
+\if@uvaseasthesis@draft
+  \RequirePackage{type1cm} % arbitrary font size (required by draftwatermark)
+  \RequirePackage{draftwatermark} % print watermark across page
+  \RequirePackage[\if@uvaseasthesis@twoside switch \else right \fi,pagewise]{lineno} % line numbers (per page)
+
+  \overfullrule=5pt
+\fi
+
+%% hidefront
+\if@uvaseasthesis@hidefront
+  \RequirePackage{verbatim}%
+\fi
+
+%% hyper
+\if@uvaseasthesis@hyper
+  \RequirePackage[%
+      colorlinks=true,% color links instead of using boxes
+      linkcolor=red,% color for internal (intra-document) links
+      citecolor=green,% color for bibliographic links
+      urlcolor=blue,% color for URL links
+      hyperfootnotes=false,% disable links to footnotes (because feature broken)
+      hyperindex,% make page numbers in index into hyperlinks
+      % must redefine internals for links in table of contents, etc. to work
+      % correctly
+      %implicit=false,% don't redefine LaTeX internals (e.g., \label)
+      pdfstartview={FitH},% startup page view: fit width of page to window
+      bookmarks
+  ]{hyperref}
+
+  % fix problem with hyperref that hyperlinks jump *below* the caption of floats
+  \RequirePackage[all]{hypcap}%
+\else
+  % hyperref cannot handle fragile commands in moving references (e.g., chapter
+  % or section names). \texorpdfstring allows a TeX and PDF name to be
+  % specified; the PDF name is used by hyperref for link names. Because the
+  % command is not standard, the definition allows its use even when not using
+  % the hyperref package.
+  \providecommand{\texorpdfstring}[2]{#1}
+\fi
+
+%% margin
+\if@uvaseasthesis@margin
+  \let\oldmarginpar=\marginpar\relax
+  \renewcommand{\marginpar}[2][\DefaultOption]{%
+    % if the optional argument is empty, set it equal to the mandatory argument
+    \def\DefaultOption{#2}%
+    %
+    \-\oldmarginpar[% left text
+      \noindent\RaggedRight\small\parskip=1ex #1%
+    ]{% right text
+      \noindent\RaggedRight\small\parskip=1ex #2%
+    }%
+  }
+
+  \RequirePackage{mparhack} % superseded by marginfix?
+  %\RequirePackage{marginfix} % not available by default in Ubuntu 10.04
+  \RequirePackage[outer,marginal]{showlabels}
+
+  \renewcommand{\showlabelfont}{\scriptsize\normalfont}
+  \renewcommand{\showlabelsetlabel}[1]{%
+    \parbox[t]{1in}{\RaggedRight \showlabelfont #1}
+  }
+\fi
+
+%% microtype
+\if@uvaseasthesis@microtype
+  \RequirePackage{microtype}
+\fi
+
+%% =============================================================================
+%% CONFIGURATION
+%% =============================================================================
+
+% orphan (i.e., page break immediately after first line of paragraph) penalty
+\clubpenalty=9999 % nearly infinite -- (nopefully) no orphans
+% widow (i.e., page break immediately before last line of paragraph) penalty
+\widowpenalty=9999 % nearly infinite -- (hopefully) no widows
+
+% draft watermark
+\if@uvaseasthesis@draft
+  \SetWatermarkLightness{0.975} % lighten watermark, 97.5% white
+
+  % line numbers on drafts
+  \@uvaseasthesis@linenotrue
+
+  \newcommand{\draftnotice}{%
+    DRAFT:
+    \timestamp
+  }
+\fi
+
+%% =============================================================================
+%% HOOKS
+%% =============================================================================
+
+%% document start
+\AtBeginDocument{%
+  \if@uvaseasthesis@lineno
+    \linenumbers % number lines
+  \fi
+
+
+  % ensure all required information (degree, department (aka "field of study"),
+  % graduation month, graduation year) has been provided
+
+  % if degree is not defined
+  \ifx \graduation@degree\undefined %
+    \PackageWarning{\uvaseasthesis@name}{%
+      missing degree, assuming Ph.D. Use \protect\degree \space in the %
+      preamble to specify the degree%
+    }%
+    \degree{Doctor of Philosophy}%
+  \fi%
+  \ifx \graduation@program\undefined
+    \PackageError{\uvaseasthesis@name}{%
+      missing field of study%
+    }{%
+      Use \protect\program \space in the preamble to specify the field of study.%
+    }
+  \fi
+  \ifx \document@type\undefined
+    \def\document@type{thesis}
+  \fi
+  \renewcommand*{\documenttype}[0]{\document@type}
+
+  \ifx \graduation@month\undefined
+    \PackageError{\uvaseasthesis@name}{%
+      graduation month undefined%
+    }{%
+      Use \protect\graduationmonth \space in the preamble to specify the month %
+      of graduation, *not* the defense.%
+    }
+  \fi
+  \ifx \graduation@year\undefined
+    \PackageError{\uvaseasthesis@name}{%
+      graduation year undefined%
+    }{%
+      Use \protect\graduationyear \space in the preamble to specify the year %
+      of graduation, *not* the defense.%
+    }
+  \fi
+}
+
+%% document end
+%\AtEndDocument
+
+%% =============================================================================
+%% COMPATIBILITY / BUG FIXES (for other packages)
+%% =============================================================================
+
+\if@uvaseasthesis@twoside
+\else
+  \let\cleardoublepage=\clearpage\relax
+  \raggedbottom
+\fi
+
+% frontmatter and mainmatter by default do not obey the openany option
+\renewcommand{\frontmatter}{%
+  \if@openright
+    \cleardoublepage
+  \else
+    \clearpage
+  \fi
+  \@mainmatterfalse
+  \pagenumbering{roman}
+}
+\renewcommand{\mainmatter}{%
+  \if@openright
+    \cleardoublepage
+  \else
+    \clearpage
+  \fi
+  \@mainmattertrue
+  \pagenumbering{arabic}
+}
+
+% Counter bug for spacing quotes -- too much whitespace is currently inserted
+% (a blank (doublespaced) line before and after the quote environment).
+%
+% NOTE that the given code assumes doublespacing is active! Testing the current
+% spacing using a macro would be a better solution than hardcoding the value.
+\if@uvaseasthesis@singlespace\else
+  \let\oldquote=\quote\relax
+  \let\endoldquote=\endquote\relax
+  \renewenvironment{quote}{%
+    % Technically -0.6 is only correct for 10pt, but it's close enough for 11pt
+    % and 12pt that it probably won't be that noticeable.
+    \vspace{-0.5\baselineskip}%
+    \begin{oldquote}%
+  }{%
+    \end{oldquote}%
+    \vspace{-0.5\baselineskip}%
+  }
+\fi
+
+% 7 January 2011 - JC
+% Do the same for the quotation environment (see above).
+\if@uvaseasthesis@singlespace\else
+  \let\oldquotation=\quotation\relax
+  \let\endoldquotation=\endquotation\relax
+  \renewenvironment{quotation}{%
+    \vspace{-0.5\baselineskip}%
+    \begin{oldquotation}%
+  }{%
+    \end{oldquotation}%
+    \vspace{-0.5\baselineskip}%
+  }
+\fi
+
+\if@uvaseasthesis@singlespace\else
+  \let\oldverse=\verse\relax
+  \let\endoldverse=\endverse\relax
+  \renewenvironment{verse}{%
+    \vspace{-0.5\baselineskip}%
+    \begin{oldverse}%
+  }{%
+    \end{oldverse}%
+    \vspace{-0.5\baselineskip}%
+  }
+\fi
+
+%% =============================================================================
+%% COMMANDS / ENVIRONMENTS
+%% =============================================================================
+
+%% RENEWED COMMANDS / ENVIRONMENTS ---------------------------------------------
+
+% NOTE: The starred version of newcommand (and its derivatives) denote commands
+% that will not accept paragraph breaks (e.g., two blank lines raise an
+% immediate error).
+
+% redefine \author to set PDF metadata (if appropriate)
+\renewcommand*\author[1]{
+  \global\def\@author{#1}
+  % set PDF metadata
+  \if@uvaseasthesis@hyper
+    \hypersetup{pdfauthor = {\@author}}
+  \fi
+}
+% redefine \title to set PDF metadata (if appropriate)
+\renewcommand*\title[1]{
+  \global\def\@title{#1}
+  % set PDF metadata
+  \if@uvaseasthesis@hyper
+    \hypersetup{pdftitle = {\@title}}
+  \fi
+}
+
+% 6 January 2011 - JC
+% Center figures by default (as required by SEAS) and set the default placement
+% avoid pages of floats.
+\renewcommand*{\fps@figure}{!tb}
+\renewenvironment{figure}[1][\fps@figure]{%
+  \edef\@tempa{\noexpand\@float{figure}[#1]}%
+  \@tempa\centering%
+  \if@uvaseasthesis@hyper
+    \capstart
+  \fi
+}{%
+  \end@float%
+}
+
+% 6 January 2011 - JC
+% By extension, also center tables (see above).
+\renewcommand*{\fps@table}{!tb}
+\renewenvironment{table}[1][\fps@table]{%
+  \edef\@tempa{\noexpand\@float{table}[#1]}%
+  \@tempa\centering%
+  \if@uvaseasthesis@hyper
+    \capstart
+  \fi
+}{%
+  \end@float%
+}
+
+% tableofcontents
+%
+% Since the "standard" bibliography command uses \MakeUppercase, the simplest
+% way to print in mixed case is by making \MakeUppercase a no-op.
+%
+% Note that this redefinition is repeated for the table of contents, list of
+% tables, list of figures, and bibliography itself.
+\let\@oldtableofcontents=\tableofcontents\relax
+\renewcommand{\tableofcontents}{%
+  % allows the table of contents to be printed on the back of the title page
+  \if@uvaseasthesis@hidefront
+    \setcounter{tocdepth}{0} % only one page => only print chapters
+  \fi
+
+  \if@uvaseasthesis@hyper
+    \phantomsection
+  \fi
+
+  \if@uvaseasthesis@hidefront
+  \else
+    \addcontentsline{toc}{chapter}{Contents}
+  \fi
+
+  \begin{singlespace}
+    \renewcommand{\MakeUppercase}[1]{%
+      % the original tableofcontents command calls @mkboth automatically -- the
+      % simplest way to remove the header is having \MakeUppercase return
+      % nothing
+      \if@uvaseasthesis@compliantmargins
+      \else
+        ##1
+      \fi
+    }
+
+    \@oldtableofcontents
+    % no page number when on back of title page
+    \if@uvaseasthesis@hidefront
+      \thispagestyle{empty}
+    \fi
+  \end{singlespace}
+}
+
+%% listoftables
+\let\@oldlistoftables=\listoftables\relax
+\renewcommand{\listoftables}{%
+  \if@uvaseasthesis@hidefront
+  \else
+    \clearpage
+    \if@uvaseasthesis@hyper \phantomsection \fi
+    \addcontentsline{toc}{section}{\listtablename}
+
+    \begin{singlespace}
+      \renewcommand{\MakeUppercase}[1]{%
+        \if@uvaseasthesis@compliantmargins
+	\else
+          ##1
+	\fi
+      }
+
+      \@oldlistoftables
+    \end{singlespace}
+  \fi
+}
+
+%% listoffigures
+\let\@oldlistoffigures=\listoffigures\relax
+\renewcommand{\listoffigures}{%
+  \if@uvaseasthesis@hidefront
+  \else
+    \clearpage
+    \if@uvaseasthesis@hyper \phantomsection \fi
+    \addcontentsline{toc}{section}{\listfigurename}
+
+    \begin{singlespace}
+      \renewcommand{\MakeUppercase}[1]{%
+        \if@uvaseasthesis@compliantmargins
+	\else
+          ##1
+	\fi
+      }
+
+      \@oldlistoffigures
+    \end{singlespace}
+  \fi
+}
+
+\newcommand{\listofsymbols}{%
+  \newcommand{\listsymbolname}{List of Symbols}%
+  %
+  \if@uvaseasthesis@hidefront
+  \else
+    \newcommand{\@listofsymbols}{{% second brace scopes single spacing
+      %\singlespacing%
+      \let\cleardoublepage=\clearpage\relax
+      \printglossary[style=symbols,title=\listsymbolname,type=\symbolname]%
+    }}
+
+    \ifglstoc
+      \clearpage
+      \if@uvaseasthesis@hyper \phantomsection \fi
+      \addcontentsline{toc}{section}{\listsymbolname}
+
+      \glstocfalse
+      \@listofsymbols
+      \glstoctrue
+    \else
+      \@listofsymbols
+    \fi
+  \fi
+}
+
+%% listoftablesandfigures
+\newcommand{\listoftablesandfigures}{%
+  \newcommand{\listtableandfigurename}{List of Tables and Figures}
+
+  \if@uvaseasthesis@hidefront
+  \else
+    \if@uvaseasthesis@sequential
+      \clearpage
+      \if@uvaseasthesis@hyper \phantomsection \fi
+      \addcontentsline{toc}{section}{\listtableandfigurename}
+
+      \begin{singlespace}
+        \renewcommand{\MakeUppercase}[1]{%
+          \if@uvaseasthesis@compliantmargins
+          \else
+            ##1
+          \fi
+        }
+
+        \if@twocolumn
+          \@restonecoltrue\onecolumn
+        \else
+          \@restonecolfalse
+        \fi
+        \chapter*{\listtableandfigurename}%
+          \@mkboth{%
+            \MakeUppercase\listtableandfigurename%
+          }{%
+            \MakeUppercase\listtableandfigurename%
+          }
+        \@starttoc{lof}
+        \if@restonecol
+          \twocolumn
+        \fi
+      \end{singlespace}
+    \else
+      \listoftables
+      \listoffigures
+    \fi
+  \fi
+}
+\if@uvaseasthesis@sequential
+  \def\ext@table{lof}
+\fi
+
+%% bibliography
+\let\@oldbibliography=\bibliography\relax
+\renewcommand{\bibliography}[1]{%
+  \if@uvaseasthesis@hyper \phantomsection \fi
+  \addcontentsline{toc}{chapter}{\bibname}
+
+  \begingroup
+    \RaggedRight % use ragged2e macro to improve appearance
+    \singlespacing
+
+    \renewcommand{\MakeUppercase}[1]{##1}
+    \@oldbibliography{#1}
+  \endgroup
+}
+% \renewcommand{\bibname}{} % changes title of bibliography
+
+%% header / footer
+%
+% 7 January 2011 - JC
+% ps@myheadings should already be defined, \def will simply overwrite (without
+% warning) the existing definition.
+\def\ps@myheadings{%
+  % HEADER of ODD numbered pages
+  \def\@oddhead{%
+    \if@uvaseasthesis@compliantmargins %
+    \else %
+      \rightmark %
+    \fi %
+    \hfill\thepage
+  }%
+  % HEADER of EVEN numbered pages
+  \def\@evenhead{%
+      \if@uvaseasthesis@twoside %
+        \thepage\hfill %
+      \fi %
+      %
+      \if@uvaseasthesis@compliantmargins %
+      \else
+        \leftmark %
+      \fi %
+      %
+      \if@uvaseasthesis@twoside %
+      \else %
+        \hfill\thepage %
+      \fi%
+  }%
+  % FOOTER of ODD numbered pages
+  \def\@oddfoot{%
+      \if@uvaseasthesis@draft %
+        \hfill \draftnotice \hfill %
+      \fi%
+  }%
+  % FOOTER of EVEN numbered pages
+  \def\@evenfoot{%
+      \if@uvaseasthesis@draft %
+        \hfill \draftnotice \hfill %
+      \fi%
+  }%
+}
+
+%% chaptermark
+\renewcommand{\chaptermark}[1]{%
+  \markboth{% LEFT head(er)
+    Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
+  }{% RIGHT head(er)
+    Chapter \thechapter\hspace{1em}\vrule\hspace{1em}#1%
+  }%
+}
+
+%% sectionmark
+\renewcommand{\sectionmark}[1]{%
+  \markright{%
+    \thesection\hspace{1em}\vrule\hspace{1em}#1%
+  }%
+}
+
+%% frontmatter
+\let\@oldfrontmatter\frontmatter\relax
+\renewcommand{\frontmatter}{%
+  \@oldfrontmatter%
+  \pagenumbering{roman}%
+}
+
+%% mainmatter
+\let\@oldmainmatter\mainmatter\relax
+\renewcommand{\mainmatter}{%
+  \@oldmainmatter%
+  \pagenumbering{arabic}%
+}
+
+% MACROS FOR (INTERNAL) PACKAGE USE --------------------------------------------
+
+% \longmonth => name of month (in text)
+\def\longmonth{[Month]}
+\ifcase\month
+  \or\def\longmonth{January}
+  \or\def\longmonth{February}
+  \or\def\longmonth{March}
+  \or\def\longmonth{April}
+  \or\def\longmonth{May}
+  \or\def\longmonth{June}
+  \or\def\longmonth{July}
+  \or\def\longmonth{August}
+  \or\def\longmonth{September}
+  \or\def\longmonth{October}
+  \or\def\longmonth{November}
+  \or\def\longmonth{December}
+\fi
+% \formatteddate => ``Day Month Year'' date style
+% edef => expand macro immediately
+\edef\formatteddate{\number\day\ \longmonth\ \number\year}
+\def\today{\formatteddate}
+
+% calculate hour
+\newcount\hour
+\hour\time\relax
+\divide\hour by 60
+\edef\hour{\ifnum\hour<10 0\fi\number\hour}
+
+% calculate minute
+\newcount\minute
+\minute\time\relax
+\count255=\hour
+\multiply\count255 by 60
+\advance\minute by -\count255
+\edef\minute{\ifnum\minute<10 0\fi\number\minute}
+
+%\def\meridiem{am}\relax
+%\ifnum\hour > 12
+%  \advance\hour by -12
+%  \def\meridiem{pm}\relax
+%\fi
+
+% \formattedtime => HH:MM
+\edef\formattedtime{\hour:\minute}
+
+% \timestamp => ``YYYY-MM-DD HH:MM'' date/time style
+\edef\timestamp{%
+  \the\year-\ifnum\month<10 0\fi\the\month-\ifnum\day<10 0\fi\the\day\ \hour:\minute
+}
+
+% NEW COMMANDS / ENVIRONMENTS --------------------------------------------------
+
+\newcommand*\degree[1]{%
+  \def\graduation@degree{#1}%
+}
+\newcommand*\documenttype[1]{%
+  \def\document@type{#1}%
+}
+
+\newcommand*\program[1]{%
+  \def\graduation@program{#1}%
+}
+
+\newcommand*\graduationmonth[1]{%
+  \def\graduation@month{#1}%
+}
+\newcommand*\graduationyear[1]{%
+  \def\graduation@year{#1}%
+}
+
+% 7 January 2011 - JC
+% Keep this length internal to the package (via the `@' in its name).
+\newlength{\uvaseasthesis@hlineheight}
+\setlength{\uvaseasthesis@hlineheight}{1pt}
+
+%% title page
+\renewcommand{\maketitle}{%
+  \if@uvaseasthesis@lineno \nolinenumbers \fi % no line numbers
+  % When printing drafts, it's nice to have the table of contents appear on the
+  % back of the title page. cleardoublepage must be temporarily redefined to
+  % enable this functionality (because \endtitlepage calls \cleardoublepage).
+  \if@uvaseasthesis@hidefront
+    \let\cleardoublepage=\clearpage\relax
+  \fi
+  \begin{titlepage}
+    \centering
+    \doublespacing
+
+    \vspace*{.5in} % `*' prevents the space from being removed
+    \textbf{\Large \@title}\\
+    \rule{\textwidth}{\uvaseasthesis@hlineheight}
+    A \xmakefirstuc{\document@type}\\
+    Presented to\\
+    the Faculty of the School of Engineering and Applied Science\\
+    University of Virginia\\
+    \rule{\textwidth}{\uvaseasthesis@hlineheight}
+    In Partial Fulfillment\\
+    of the requirements for the Degree\\
+    \graduation@degree\ (\graduation@program)\\[4ex]
+    by\\[3ex]
+    \@author\\
+    \graduation@month\ \graduation@year\\
+
+    \if@uvaseasthesis@draft
+      \vfill
+
+      \hrule
+      \begin{center}
+        \draftnotice
+      \end{center}
+      \hrule
+    \fi
+  \end{titlepage}
+
+  \thispagestyle{empty} % \endtitlepage => \cleardoublepage, ensure blank
+
+  \if@uvaseasthesis@lineno
+    \linenumbers % re-enable line numbers
+  \fi
+}
+
+%% copyright page
+\DeclareRobustCommand{\uvaseasthesis@copyright}{
+  \if@uvaseasthesis@compliantcopyright
+    % copyright notice specified by UVa print services
+    \noindent
+    \textcopyright\ Copyright by\\
+    \@author\\
+    All rights reserved\\
+    \graduation@month\ \graduation@year
+  \else
+    % copyright notice specified by U.S. copyright office
+    \textcopyright\ \graduation@year\ \@author
+  \fi
+}
+\DeclareRobustCommand{\copyrightpage}{
+  \if@uvaseasthesis@hidefront
+  \else
+    \thispagestyle{empty} % no header or footer
+
+    \if@uvaseasthesis@lineno
+      \nolinenumbers % no line numbers
+    \fi
+
+    % 14 August 2010 - JC
+    % \singlespacing interferes with \begingroup and \centering, but
+    % \begin{center} has the desired effect
+    \begin{center}
+      \singlespacing
+
+      \ \vfill
+
+      \uvaseasthesis@copyright
+    \end{center}
+
+    \clearpage
+
+    \if@uvaseasthesis@lineno
+      \linenumbers % re-enable line numbers
+    \fi
+  \fi
+}
+
+%% signatures page
+\newcommand{\signaturestyle}[1]{\LARGE #1}
+\newcommand{\authorsignature}{\@author}
+\def\signatures{%
+  \newlength{\signaturewidth}
+  \setlength{\signaturewidth}{.8\textwidth}
+
+  \newlength{\signaturesize}
+  \setlength{\signaturesize}{30pt minus6pt}
+
+  \newcommand{\signaturespace}{\vspace{\signaturesize}}
+  \newcommand{\signatureindent}{\par\noindent\hspace{.2\textwidth}}
+
+  \newcommand{\signatureline}[1][]{%
+    \signaturespace%
+    \signatureindent%
+    %\if@uvaseasthesis@electronic%
+      \makebox[0em][l]{%
+        \makebox[\signaturewidth][c]{%
+          \raisebox{0.5ex}[0pt][0pt]{%
+            \signaturestyle{##1}%
+          }%
+        }%
+      }%
+    %\fi%
+    \nopagebreak[4]% prevent page break
+    \rule{\signaturewidth}{\uvaseasthesis@hlineheight}%
+  }
+
+  \newcommand{\signature}[2][]{%
+    \signatureline[##1]%
+    \nopagebreak[4]% prevent page break
+    \signatureindent##2%
+  }
+  \newcommand{\dean}[2][\@empty]{%
+    \def\uvaseasthesis@deansignature{\ifx\@empty##1 ##2 \else ##1 \fi}%
+    \def\uvaseasthesis@dean{##2}%
+  }
+
+  \begingroup
+    \if@uvaseasthesis@hidefront
+    \else
+      \if@uvaseasthesis@lineno
+        \nolinenumbers % no line numbers
+      \fi
+
+      %\if@uvaseasthesis@compliantmargins
+      %  \thispagestyle{empty} % no numbering
+      %\else
+        \thispagestyle{plain} % page number in footer
+      %\fi
+
+      \cleardoublepage
+      \section*{\centering\Large Approval Sheet}
+
+      \begin{center}
+        This \document@type\ is submitted in partial fulfillment of the requirements for the degree of\\
+        \graduation@degree\ (\graduation@program)
+      \end{center}
+
+      \singlespacing
+
+      \signature[\authorsignature]{\@author}
+
+      \addvspace{.75\signaturesize}
+      \noindent This \document@type\ has been read and approved by the Examining Committee:\\[1ex]
+  \fi
+}
+\def\endsignatures{%
+  \if@uvaseasthesis@hidefront
+  \else
+    \singlespacing
+
+    \addvspace{.75\signaturesize}
+    \noindent Accepted for the School of Engineering and Applied Science:
+
+    \signature[%
+      \ifx\uvaseasthesis@deansignature\undefined%
+      \else%
+        \uvaseasthesis@deansignature%
+      \fi%
+    ]{%
+      \ifx\uvaseasthesis@dean\undefined%
+      \else%
+        \uvaseasthesis@dean,\ %
+      \fi%
+      Dean, School of Engineering and Applied Science%
+    }
+
+    \nopagebreak[4] % do not allow page break prior to date
+    \begin{center}
+      \graduation@month\ \graduation@year
+    \end{center}
+
+    \cleardoublepage
+    \if@uvaseasthesis@lineno \linenumbers \fi % re-enable line numbers
+  \fi
+  \endgroup
+}
+
+%% dedication
+\DeclareRobustCommand{\dedication}[1]{%
+  \if@uvaseasthesis@hidefront
+  \else
+    %\if@uvaseasthesis@compliantmargins
+    %  \thispagestyle{empty} % no page number
+    %\else
+      \thispagestyle{plain} % page number in footer
+    %\fi
+
+    \begingroup
+      \centering
+      \singlespacing
+      \if@uvaseasthesis@lineno \nolinenumbers \fi % no line numbers, ends at end of group
+
+      \ \vfill
+      \textit{#1}
+      \vfill
+    \endgroup
+
+    \cleardoublepage
+    \thispagestyle{empty}
+  \fi
+}
+
+%% abstract
+%
+% 4 January 2011 - JC
+% According to UVa Print Services's dissertation checklist, the abstract must
+% be 350 words or less. Enforcing this requirement is probably not possible
+% using (just) LaTeX.
+\newenvironment{abstract}[0]{%
+  \if@uvaseasthesis@hidefront%
+    \comment%
+  \else%
+    \renewcommand{\chaptermark}[1]{%
+      \markboth{%
+        \if@uvaseasthesis@compliantmargins%
+        \else%
+          ##1%
+        \fi%
+      }{%
+        \if@uvaseasthesis@compliantmargins%
+        \else%
+          ##1%
+        \fi%
+      }%
+    }%
+    %
+    \cleardoublepage
+    \addcontentsline{toc}{chapter}{Abstract}
+    \chapter*{Abstract}%
+    % \chapter* does not call \chaptermark with the name of the chapter. To
+    % have page headers, this line is necessary. (See also the acknowledgments
+    % and acknowledgments environments.)
+    \chaptermark{Abstract}%
+  \fi%
+}{
+  \if@uvaseasthesis@hidefront%
+    \endcomment%
+  \else%
+    \cleardoublepage%
+    \chaptermark{}%
+  \fi%
+}
+
+%% acknowledgments
+\newenvironment{acknowledgments}[1][Acknowledgments]{%
+  \if@uvaseasthesis@hidefront%
+    \comment%
+  \else%
+    \renewcommand{\chaptermark}[1]{%
+      \markboth{%
+        \if@uvaseasthesis@compliantmargins%
+        \else%
+          ##1%
+        \fi%
+      }{%
+        \if@uvaseasthesis@compliantmargins%
+        \else%
+          ##1%
+        \fi%
+      }%
+    }%
+    %
+    \cleardoublepage
+    \addcontentsline{toc}{chapter}{#1}
+    \chapter*{#1}%
+    \chaptermark{#1}% see comment in abstract environment
+  \fi%
+}{%
+  \if@uvaseasthesis@hidefront%
+    \endcomment%
+  \else%
+    \cleardoublepage%
+    \chaptermark{}%
+  \fi%
+}
+% explicitly support alternative spelling of acknowledgments
+\newenvironment{acknowledgements}[0]{%
+  \acknowledgments[Acknowledgements]%
+}{%
+  \endacknowledgments%
+}
+
+% 5 January 2011 - JC
+% LaTeX is most uncooperative with regards to redefining the chapter command.
+% While it is possible to backport some hacks from the book class, a portable
+% (i.e., robust to different classes) solution appears out of reach.
+%
+% The fancyhdr package may provide an alternate workaround, but here we redefine
+% the plain page style (ps@plain) as the myheadings page style (ps@myheadings).
+% Hence, when LaTeX calls \thispagestyle(plain) at the start of parts, chapters,
+% etc., the myheadings page style will actually be used.
+\if@uvaseasthesis@compliantmargins
+  \let\ps@plain=\ps@myheadings\relax
+\fi
+
+% sequential numbering (of tables, figures, equations, etc.)
+%
+% 4 January 2010 - JC
+% Sequential numbering (throughout chapter) of equations, tables, and figures.
+% Documentation is practically non-existent regarding LaTeX's internal handling
+% of counters, but the following appears to work.
+\if@uvaseasthesis@sequential
+  \newcounter{sequential}[chapter]
+
+  \let\c@equation=\c@sequential\relax
+  \let\c@figure=\c@sequential\relax
+  \let\c@table=\c@sequential\relax
+
+  % explicitly support the listings package
+  \@ifpackageloaded{listings}{%
+    \let\c@lstnumber=\c@sequential\relax
+  }
+\fi
+
+%% =============================================================================
+%% PREAMBLE COMMANDS
+%% =============================================================================
+%% 7 January 2011 - JC
+%% These commands should be executed as part of the preamble, just before this
+%% input file ends.
+
+% double space the complete document
+\if@uvaseasthesis@typewriterdoublespace
+  \setstretch{2.0}
+\else
+  \if@uvaseasthesis@singlespace
+  \else
+    \doublespacing
+  \fi
+\fi
+
+% number initial pages by a, b, c, ...
+\pagenumbering{alph}
+
+% page style
+\pagestyle{myheadings}
+
+% bibliography style
+\bibliographystyle{%
+  \if@uvaseasthesis@alphacitations%
+    alpha%
+  \else%
+    unsrt%
+  \fi%
+}
