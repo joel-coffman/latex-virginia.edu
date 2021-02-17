@@ -6,3 +6,5 @@ texlive
 texlive-font-utils
 texlive-generic-extra
 texlive-latex-extra
+unzip
+zip

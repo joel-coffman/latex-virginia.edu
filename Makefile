@@ -10,4 +10,4 @@ default: $(packages)
 
 .PHONY: $(packages)
 $(packages):
-	$(MAKE) -C $@
+	$(MAKE) -C $@ dist distcheck
