@@ -11,3 +11,8 @@ default: $(packages)
 .PHONY: $(packages)
 $(packages):
 	$(MAKE) -C $@ dist distcheck
+
+
+.PHONY: list
+list:
+	@for package in $(packages); do echo $$package; done
