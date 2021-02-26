@@ -9,10 +9,6 @@ beamerthemeseas.virginia.edu.pdf: beamerthemeseas.virginia.edu.sty example.pdf |
 
 example.pdf: beamerthemeseas.virginia.edu.sty
 
-.PHONY: minted
-minted:
-	if ! [ -d $@ ]; then mkdir --parents $@; fi
-
 include $(shell git rev-parse --show-toplevel)/Makefile.mk
 
 # fall-back for Beamer themes
